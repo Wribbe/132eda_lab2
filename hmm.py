@@ -9,12 +9,14 @@ NUM_COLS = 8
 DIRECTIONS = ['N', 'W', 'S', 'E']
 N, W, S, E = DIRECTIONS
 
-ROBOT_START_X = 0
-ROBOT_START_Y = 0
+ROBOT_START_X = 1
+ROBOT_START_Y = 1
 
 ROBOT_START_HEADING = N
 
 SENSOR_NOTHING = (None, None)
+
+PROB_KEEP_HEADING = 0.7
 
 class Robot:
     def __init__(self, x, y, heading):
@@ -29,15 +31,15 @@ class Robot:
 
     def next_pos(self):
         possible_steps = {
-            N: (self.x, self.y+1),
+            N: (self.x, self.y-1),
             E: (self.x+1, self.y),
-            S: (self.x, self.y-1),
+            S: (self.x, self.y+1),
             W: (self.x-1, self.y),
         }
         return possible_steps[self.heading]
 
     def facing_wall(self):
-        return out_of_bounds(self.next_pos())
+        return out_of_bounds(*self.next_pos())
 
     def get_circle_dist_from_robot(self, tiles):
         xs = range(self.x - tiles, self.x + tiles + 1)
@@ -76,7 +78,7 @@ class Robot:
         self.prob_Ls1_upper = prob_Ls1_upper
         self.prob_Ls2_upper = prob_Ls2_upper
 
-        die = random.uniform(0.0, 1.0)
+        die = die_roll()
         if 0.0 <= die <= 0.1:
             return self.location()
         elif 0.1 < die <= prob_Ls1_upper:
@@ -92,8 +94,27 @@ class Robot:
     def is_true_location(self, x, y):
         return (x, y) == self.location()
 
+    def new_heading(self):
+
+        def pick_new_heading():
+            new_heading = self.heading
+            while (new_heading == self.heading):
+                new_heading = random.choice(DIRECTIONS)
+            return new_heading
+
+        if self.facing_wall():
+            self.heading = pick_new_heading()
+        else:
+            if die_roll() > PROB_KEEP_HEADING:
+                self.heading = pick_new_heading()
+
+test = Counter()
+
 def out_of_bounds(x, y):
     return (x < 0 or y < 0) or (x >= NUM_COLS or y >= NUM_ROWS)
+
+def die_roll():
+    return random.uniform(0.0, 1.0)
 
 def check_probabilites(robot):
 
@@ -124,6 +145,22 @@ def check_probabilites(robot):
     for text, value in count_rings.items():
         print("{}: {} -> {}/{} ~ {:.2f}%".format(text, value, value, total,
                                              (value/total)*100))
+    print("")
+
+def check_probabilities_heading(robot):
+
+    count = Counter()
+    total = 1e4
+    for _ in range(int(total)):
+        old = robot.heading
+        robot.new_heading()
+        if old == robot.heading:
+            count["Keep"] += 1
+        else:
+            count["New"] += 1
+    fmt = "Robot keeps heading: {:.2f}% of the time."
+    print(fmt.format((count["Keep"]/total)*100))
+    print("")
 
 def main():
 
@@ -131,7 +168,8 @@ def main():
     dict_directions = {DIR : 0.0 for DIR in DIRECTIONS}
     matrix = [[dict_directions]*NUM_COLS for _ in range(NUM_ROWS)]
 
-    check_probabilites(robot)
+    #check_probabilites(robot)
+    #check_probabilities_heading(robot)
 
     return 0
 
