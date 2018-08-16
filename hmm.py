@@ -9,25 +9,28 @@ NUM_COLS = 8
 DIRECTIONS = ['N', 'W', 'S', 'E']
 N, W, S, E = DIRECTIONS
 
-class PosRobot:
+class Robot:
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
-POS_ROBOT = PosRobot(0, 0) # Top left corner.
+ROBOT = Robot(0, 0) # Top left corner.
 
 DICT_DIRECTIONS = {DIR : 0.0 for DIR in DIRECTIONS}
 
 matrix = [[DICT_DIRECTIONS]*NUM_COLS for _ in range(NUM_ROWS)]
 
+def get_robot_location():
+    return (ROBOT.x, ROBOT.y)
+
 def is_robot_locotion(x, y):
-    return x == POS_ROBOT.x and y == POS_ROBOT.y
+    return (x, y) == get_robot_location()
 
 def read_sensor():
 
     def get_circle_dist_from_robot(tiles):
-        xs = range(POS_ROBOT.x - tiles, POS_ROBOT.x + tiles + 1)
-        ys = range(POS_ROBOT.y - tiles, POS_ROBOT.y + tiles + 1)
+        xs = range(ROBOT.x - tiles, ROBOT.x + tiles + 1)
+        ys = range(ROBOT.y - tiles, ROBOT.y + tiles + 1)
 
         def not_max_or_min(x, y):
             x_not_max_or_min = x not in [min(xs), max(xs)]
@@ -59,7 +62,7 @@ def read_sensor():
 
     die = random.uniform(0.0, 1.0)
     if 0.0 <= die <= 0.1:
-        return (POS_ROBOT.x, POS_ROBOT.y)
+        return get_robot_location()
     elif 0.1 < die <= prob_Ls1_upper:
         return random.choice(Ls1)
     elif prob_Ls1_upper < die <= prob_Ls2_upper:
