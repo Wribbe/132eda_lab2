@@ -6,6 +6,9 @@ from collections import Counter
 NUM_ROWS = 8
 NUM_COLS = 8
 
+ROBOT_START_X = 0
+ROBOT_START_Y = 0
+
 DIRECTIONS = ['N', 'W', 'S', 'E']
 N, W, S, E = DIRECTIONS
 
@@ -14,7 +17,12 @@ class Robot:
         self.x = x
         self.y = y
 
-ROBOT = Robot(0, 0) # Top left corner.
+    def probabilites(self):
+        return (self.prob_Ls1_upper-0.1,
+                self.prob_Ls2_upper-self.prob_Ls1_upper,
+                1.0-self.prob_Ls2_upper)
+
+ROBOT = Robot(ROBOT_START_X, ROBOT_START_Y)
 
 DICT_DIRECTIONS = {DIR : 0.0 for DIR in DIRECTIONS}
 
@@ -57,8 +65,14 @@ def read_sensor():
     Ls1 = get_circle_dist_from_robot(1)
     Ls2 = get_circle_dist_from_robot(2)
 
+    ROBOT.Ls1 = Ls1
+    ROBOT.Ls2 = Ls2
+
     prob_Ls1_upper = 0.1 + 0.05 * len(Ls1)
     prob_Ls2_upper = prob_Ls1_upper + 0.025 * len(Ls2)
+
+    ROBOT.prob_Ls1_upper = prob_Ls1_upper
+    ROBOT.prob_Ls2_upper = prob_Ls2_upper
 
     die = random.uniform(0.0, 1.0)
     if 0.0 <= die <= 0.1:
@@ -70,14 +84,39 @@ def read_sensor():
     else:
         return (None, None)
 
+def check_probabilites():
+
+    count = Counter()
+    total = 1e4
+    for _ in range(int(total)):
+        count[read_sensor()] += 1
+    print("Current probabilities: ")
+    fmt = "{}: {}%"
+    print(fmt.format("correct", 10.0))
+    for (text, value) in zip(["prob_L1", "prob_L2", "prob_nothing"],
+                             [v*100 for v in ROBOT.probabilites()]):
+        print(fmt.format(text, value))
+
+    count_rings = Counter()
+    for coord, value in count.items():
+        if coord in ROBOT.Ls1:
+            count_rings["Ls1"] += value
+        elif coord in ROBOT.Ls2:
+            count_rings["Ls2"] += value
+        elif coord == get_robot_location():
+            count_rings["True Location"] += value
+        else:
+            count_rings["Nothing"] += value
+
+    print("")
+    print("Actual readings ({}):".format(total))
+    for text, value in count_rings.items():
+        print("{}: {} -> {}/{} ~ {:.2f}%".format(text, value, value, total,
+                                             (value/total)*100))
 
 def main():
 
-    count = Counter()
-    for _ in range(int(1e4)):
-        count[read_sensor()] += 1
-    print(count)
-
+    #check_probabilites()
 
 if __name__ == "__main__":
     main()
