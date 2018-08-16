@@ -6,23 +6,26 @@ from collections import Counter
 NUM_ROWS = 8
 NUM_COLS = 8
 
-ROBOT_START_X = 0
-ROBOT_START_Y = 0
-
 DIRECTIONS = ['N', 'W', 'S', 'E']
 N, W, S, E = DIRECTIONS
 
+ROBOT_START_X = 0
+ROBOT_START_Y = 0
+
+ROBOT_START_HEADING = N
+
 class Robot:
-    def __init__(self, x, y):
+    def __init__(self, x, y, heading):
         self.x = x
         self.y = y
+        self.heading = heading
 
     def probabilites(self):
         return (self.prob_Ls1_upper-0.1,
                 self.prob_Ls2_upper-self.prob_Ls1_upper,
                 1.0-self.prob_Ls2_upper)
 
-ROBOT = Robot(ROBOT_START_X, ROBOT_START_Y)
+ROBOT = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
 
 DICT_DIRECTIONS = {DIR : 0.0 for DIR in DIRECTIONS}
 
@@ -117,6 +120,7 @@ def check_probabilites():
 def main():
 
     #check_probabilites()
+    return 0
 
 if __name__ == "__main__":
     main()
