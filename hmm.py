@@ -1,6 +1,7 @@
 #!/bin/env python3
 
 import random
+from collections import Counter
 
 NUM_ROWS = 8
 NUM_COLS = 8
@@ -51,14 +52,28 @@ def read_sensor():
         return tiles
 
     Ls1 = get_circle_dist_from_robot(1)
-    print(Ls1)
     Ls2 = get_circle_dist_from_robot(2)
-    print(Ls2)
+
+    prob_Ls1_upper = 0.1 + 0.05 * len(Ls1)
+    prob_Ls2_upper = prob_Ls1_upper + 0.025 * len(Ls2)
+
+    die = random.uniform(0.0, 1.0)
+    if 0.0 <= die <= 0.1:
+        return (POS_ROBOT.x, POS_ROBOT.y)
+    elif 0.1 < die <= prob_Ls1_upper:
+        return random.choice(Ls1)
+    elif prob_Ls1_upper < die <= prob_Ls2_upper:
+        return random.choice(Ls2)
+    else:
+        return (None, None)
 
 
 def main():
 
-    print(read_sensor())
+    count = Counter()
+    for _ in range(int(1e4)):
+        count[read_sensor()] += 1
+    print(count)
 
 
 if __name__ == "__main__":
