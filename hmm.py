@@ -25,11 +25,26 @@ class Robot:
                 self.prob_Ls2_upper-self.prob_Ls1_upper,
                 1.0-self.prob_Ls2_upper)
 
+    def next_pos(self):
+        possible_steps = {
+            N: (self.x, self.y+1),
+            E: (self.x+1, self.y),
+            S: (self.x, self.y-1),
+            W: (self.x-1, self.y),
+        }
+        return possible_steps[self.heading]
+
+    def facing_wall(self):
+        return out_of_bounds(self.next_pos())
+
 ROBOT = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
 
 DICT_DIRECTIONS = {DIR : 0.0 for DIR in DIRECTIONS}
 
 matrix = [[DICT_DIRECTIONS]*NUM_COLS for _ in range(NUM_ROWS)]
+
+def out_of_bounds(x, y):
+    return (x < 0 or y < 0) or (x >= NUM_COLS or y >= NUM_ROWS)
 
 def get_robot_location():
     return (ROBOT.x, ROBOT.y)
@@ -48,13 +63,10 @@ def read_sensor():
             y_not_may_or_min = y not in [min(ys), max(ys)]
             return x_not_max_or_min and y_not_may_or_min
 
-        def less_than_zero(x, y):
-            return x < 0 or y < 0
-
         def invalid_coords(x,y):
             return any([
                 not_max_or_min(x,y),
-                less_than_zero(x,y),
+                out_of_bounds(x,y),
                 is_robot_locotion(x,y),
             ])
 
