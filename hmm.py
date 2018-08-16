@@ -14,6 +14,8 @@ ROBOT_START_Y = 0
 
 ROBOT_START_HEADING = N
 
+SENSOR_NOTHING = (None, None)
+
 class Robot:
     def __init__(self, x, y, heading):
         self.x = x
@@ -50,7 +52,7 @@ class Robot:
             return any([
                 not_max_or_min(x,y),
                 out_of_bounds(x,y),
-                self.is_robot_locotion(x,y),
+                self.is_true_location(x,y),
             ])
 
         tiles = []
@@ -76,19 +78,19 @@ class Robot:
 
         die = random.uniform(0.0, 1.0)
         if 0.0 <= die <= 0.1:
-            return self.get_robot_location()
+            return self.location()
         elif 0.1 < die <= prob_Ls1_upper:
             return random.choice(Ls1)
         elif prob_Ls1_upper < die <= prob_Ls2_upper:
             return random.choice(Ls2)
         else:
-            return (None, None)
+            return SENSOR_NOTHING
 
-    def get_robot_location(self):
+    def location(self):
         return (self.x, self.y)
 
-    def is_robot_locotion(self, x, y):
-        return (x, y) == self.get_robot_location()
+    def is_true_location(self, x, y):
+        return (x, y) == self.location()
 
 def out_of_bounds(x, y):
     return (x < 0 or y < 0) or (x >= NUM_COLS or y >= NUM_ROWS)
@@ -112,7 +114,7 @@ def check_probabilites(robot):
             count_rings["Ls1"] += value
         elif coord in robot.Ls2:
             count_rings["Ls2"] += value
-        elif coord == robot.get_robot_location():
+        elif robot.is_true_location(*coord):
             count_rings["True Location"] += value
         else:
             count_rings["Nothing"] += value
@@ -125,11 +127,11 @@ def check_probabilites(robot):
 
 def main():
 
-    ROBOT = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
-    DICT_DIRECTIONS = {DIR : 0.0 for DIR in DIRECTIONS}
-    MATRIX = [[DICT_DIRECTIONS]*NUM_COLS for _ in range(NUM_ROWS)]
+    robot = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
+    dict_directions = {DIR : 0.0 for DIR in DIRECTIONS}
+    matrix = [[dict_directions]*NUM_COLS for _ in range(NUM_ROWS)]
 
-    check_probabilites(ROBOT)
+    check_probabilites(robot)
 
     return 0
 
