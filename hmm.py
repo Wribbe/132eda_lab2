@@ -165,23 +165,25 @@ def check_probabilities_heading(robot):
     print(fmt.format((count["Keep"]/total)*100))
     print("")
 
-def main():
-
-    robot = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
-    dict_directions = {DIR : 0.0 for DIR in DIRECTIONS}
-    probability_start = 1.0 / (len(DIRECTIONS)*NUM_ROWS*NUM_COLS)
-    T = [[[probability_start]*NUM_COLS for _ in range(NUM_ROWS)] for _ in
-         DIRECTIONS]
-    for heading, mat in enumerate(T):
+def print_matrice(M):
+    print("-----")
+    for heading, mat in enumerate(M):
         print("{}:\n-----".format(HEADING_TO_CHAR[heading]))
         for y in mat:
             print(' '.join(["{:.3f}".format(f) for f in y]))
         print("-----")
-#    print(T)
 
+def main():
+
+    robot = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
+    dict_directions = {DIR : 0.0 for DIR in DIRECTIONS}
+    prob_init = 1.0 / (len(DIRECTIONS)*NUM_ROWS*NUM_COLS)
+    T = [[[prob_init]*NUM_COLS for _ in range(NUM_ROWS)] for _ in DIRECTIONS]
 
     check_probabilites(robot)
     check_probabilities_heading(robot)
+
+    print_matrice(T)
 
     return 0
 
