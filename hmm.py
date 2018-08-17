@@ -6,8 +6,14 @@ from collections import Counter
 NUM_ROWS = 8
 NUM_COLS = 8
 
-DIRECTIONS = ['N', 'W', 'S', 'E']
+DIRECTIONS = [0, 1, 2, 3]
 N, W, S, E = DIRECTIONS
+HEADING_TO_CHAR = {
+    N: 'N',
+    W: 'W',
+    S: 'S',
+    E: 'E',
+}
 
 ROBOT_START_X = 0
 ROBOT_START_Y = 0
@@ -164,10 +170,19 @@ def main():
 
     robot = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
     dict_directions = {DIR : 0.0 for DIR in DIRECTIONS}
-    matrix = [[dict_directions]*NUM_COLS for _ in range(NUM_ROWS)]
+    probability_start = 1.0 / (len(DIRECTIONS)*NUM_ROWS*NUM_COLS)
+    T = [[[probability_start]*NUM_COLS for _ in range(NUM_ROWS)] for _ in
+         DIRECTIONS]
+    for heading, mat in enumerate(T):
+        print("{}:\n-----".format(HEADING_TO_CHAR[heading]))
+        for y in mat:
+            print(' '.join(["{:.3f}".format(f) for f in y]))
+        print("-----")
+#    print(T)
 
-#    check_probabilites(robot)
-#    check_probabilities_heading(robot)
+
+    check_probabilites(robot)
+    check_probabilities_heading(robot)
 
     return 0
 
