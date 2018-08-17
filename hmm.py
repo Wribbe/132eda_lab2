@@ -150,6 +150,33 @@ def check_probabilites(robot):
                                              (value/total)*100))
     print("")
 
+class MatT():
+    def __init__(self):
+        prob_init = 1.0 / (len(DIRECTIONS)*NUM_ROWS*NUM_COLS)
+        self.T = [[[prob_init]*NUM_COLS for _ in range(NUM_ROWS)] for _ in
+                  DIRECTIONS]
+
+    def __str__(self):
+        text = []
+        text.append("-----")
+        for heading, mat in enumerate(self.T):
+            text.append("{}:\n-----".format(HEADING_TO_CHAR[heading]))
+            for y in mat:
+                text.append(' '.join(["{:.3f}".format(f) for f in y]))
+            text.append("-----")
+        return '\n'.join(text)
+
+class MatO():
+    def __init__(self):
+        self.O = [[[0.0]*min(NUM_ROWS, NUM_COLS)] for _ in
+                  range(NUM_ROWS*NUM_COLS+1)]
+
+    def __str__(self):
+        text = []
+        for row in self.O:
+            text.append(' '.join(["{}".format(f) for f in row]))
+        return '\n'.join(text)
+
 def check_probabilities_heading(robot):
 
     count = Counter()
@@ -165,25 +192,19 @@ def check_probabilities_heading(robot):
     print(fmt.format((count["Keep"]/total)*100))
     print("")
 
-def print_matrice(M):
-    print("-----")
-    for heading, mat in enumerate(M):
-        print("{}:\n-----".format(HEADING_TO_CHAR[heading]))
-        for y in mat:
-            print(' '.join(["{:.3f}".format(f) for f in y]))
-        print("-----")
-
 def main():
 
     robot = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
     dict_directions = {DIR : 0.0 for DIR in DIRECTIONS}
-    prob_init = 1.0 / (len(DIRECTIONS)*NUM_ROWS*NUM_COLS)
-    T = [[[prob_init]*NUM_COLS for _ in range(NUM_ROWS)] for _ in DIRECTIONS]
+
 
     check_probabilites(robot)
     check_probabilities_heading(robot)
 
-    print_matrice(T)
+    T = MatT()
+    print(T)
+    O = MatO()
+    print(O)
 
     return 0
 
