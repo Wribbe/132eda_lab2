@@ -6,13 +6,15 @@ from collections import Counter
 NUM_ROWS = 8
 NUM_COLS = 8
 
-N, W, S, E = DIRECTIONS = [0, 1, 2, 3]
+N, W, S, E = HEADINGS = [0, 1, 2, 3]
 HEADING_TO_CHAR = {
     N: 'N',
     W: 'W',
     S: 'S',
     E: 'E',
 }
+
+PROB_KEEPING_HEADING = 0.7
 
 ROBOT_START_X = 0
 ROBOT_START_Y = 0
@@ -35,13 +37,7 @@ class Robot:
                 1.0-self.prob_Ls2_upper)
 
     def next_pos(self):
-        possible_steps = {
-            N: (self.x, self.y-1),
-            E: (self.x+1, self.y),
-            S: (self.x, self.y+1),
-            W: (self.x-1, self.y),
-        }
-        return possible_steps[self.heading]
+        return next_pos(self.x, self.y, self.heading)
 
     def facing_wall(self):
         return out_of_bounds(*self.next_pos())
@@ -104,7 +100,7 @@ class Robot:
         def pick_new_heading():
             new_heading = self.heading
             while (new_heading == self.heading):
-                new_heading = random.choice(DIRECTIONS)
+                new_heading = random.choice(HEADINGS)
             return new_heading
 
         if self.facing_wall():
@@ -118,6 +114,14 @@ def out_of_bounds(x, y):
 
 def die_roll():
     return random.uniform(0.0, 1.0)
+
+def next_pos(x,y,heading):
+    return {
+        N: (x, y-1),
+        E: (x+1, y),
+        S: (x, y+1),
+        W: (x-1, y),
+    }[heading]
 
 def check_probabilites(robot):
 
@@ -153,6 +157,7 @@ def check_probabilites(robot):
 class MatT():
     def __init__(self):
         self.T = self.init_matrix()
+        self.set_values()
 
     def probability(self, current_x, current_y, current_heading, next_x,
                     next_y, next_heading):
@@ -165,12 +170,34 @@ class MatT():
         return self.T[ch][cy][cx][nh][ny][nx]
 
     def init_matrix(self):
+        base = lambda : [[[0.0] * NUM_COLS for _ in range(NUM_ROWS)] for _ in
+                         HEADINGS]
+        return [[[base() for _ in range(NUM_COLS)] for _ in range(NUM_ROWS) ] for _
+                in HEADINGS]
 
-        def base_matrix(f):
-            return [[[f]*NUM_COLS for _ in range(NUM_ROWS)] for _ in
-                    DIRECTIONS]
-
-        return base_matrix(base_matrix(1.0))
+    def set_values(self):
+        for heading in range(len(self.T)):
+            ys = self.T[heading]
+            for y in range(len(ys)):
+                xs = ys[y]
+                for x in range(len(xs)):
+                    forward_pos = None
+                    other_possible = []
+                    probability_total = 1.0
+                    for h in HEADINGS:
+                        pos = next_pos(x,y,h)
+                        if out_of_bounds(*pos):
+                            continue
+                        if h == heading:
+                            forward_pos = pos
+                        else:
+                            other_possible.append((*pos, h))
+                    if forward_pos:
+                        nx,ny = forward_pos
+                        xs[x][heading][ny][nx] = PROB_KEEPING_HEADING
+                        probability_total -= PROB_KEEPING_HEADING
+                    for nx,ny,nh in other_possible:
+                        xs[x][nh][ny][nx] = probability_total/len(other_possible)
 
 class MatO():
     def __init__(self):
@@ -201,16 +228,16 @@ def check_probabilities_heading(robot):
 def main():
 
     robot = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
-    dict_directions = {DIR : 0.0 for DIR in DIRECTIONS}
-
 
     check_probabilites(robot)
     check_probabilities_heading(robot)
 
     T = MatT()
-    print(T)
     O = MatO()
-    print(O)
+
+    print(T.probability(0,0,E,1,0,E))
+    print(T.probability(0,0,E,1,0,N))
+    print(T.probability(3,3,N,3,4,S))
 
     return 0
 
