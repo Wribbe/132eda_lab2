@@ -9,8 +9,8 @@ NUM_COLS = 8
 DIRECTIONS = ['N', 'W', 'S', 'E']
 N, W, S, E = DIRECTIONS
 
-ROBOT_START_X = 1
-ROBOT_START_Y = 1
+ROBOT_START_X = 0
+ROBOT_START_Y = 0
 
 ROBOT_START_HEADING = N
 
@@ -108,10 +108,8 @@ class Robot:
             if die_roll() > PROB_KEEP_HEADING:
                 self.heading = pick_new_heading()
 
-test = Counter()
-
 def out_of_bounds(x, y):
-    return (x < 0 or y < 0) or (x >= NUM_COLS or y >= NUM_ROWS)
+    return any([x < 0, y < 0, x >= NUM_COLS, y >= NUM_ROWS])
 
 def die_roll():
     return random.uniform(0.0, 1.0)
@@ -168,8 +166,8 @@ def main():
     dict_directions = {DIR : 0.0 for DIR in DIRECTIONS}
     matrix = [[dict_directions]*NUM_COLS for _ in range(NUM_ROWS)]
 
-    #check_probabilites(robot)
-    #check_probabilities_heading(robot)
+#    check_probabilites(robot)
+#    check_probabilities_heading(robot)
 
     return 0
 
