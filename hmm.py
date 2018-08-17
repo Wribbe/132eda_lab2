@@ -152,19 +152,25 @@ def check_probabilites(robot):
 
 class MatT():
     def __init__(self):
-        prob_init = 1.0 / (len(DIRECTIONS)*NUM_ROWS*NUM_COLS)
-        self.T = [[[prob_init]*NUM_COLS for _ in range(NUM_ROWS)] for _ in
-                  DIRECTIONS]
+        self.T = self.init_matrix()
 
-    def __str__(self):
-        text = []
-        text.append("-----")
-        for heading, mat in enumerate(self.T):
-            text.append("{}:\n-----".format(HEADING_TO_CHAR[heading]))
-            for y in mat:
-                text.append(' '.join(["{:.3f}".format(f) for f in y]))
-            text.append("-----")
-        return '\n'.join(text)
+    def probability(self, current_x, current_y, current_heading, next_x,
+                    next_y, next_heading):
+        cx = current_x
+        cy = current_y
+        ch = current_heading
+        nx = next_x
+        ny = next_y
+        nh = next_heading
+        return self.T[ch][cy][cx][nh][ny][nx]
+
+    def init_matrix(self):
+
+        def base_matrix(f):
+            return [[[f]*NUM_COLS for _ in range(NUM_ROWS)] for _ in
+                    DIRECTIONS]
+
+        return base_matrix(base_matrix(1.0))
 
 class MatO():
     def __init__(self):
