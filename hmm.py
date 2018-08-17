@@ -6,8 +6,7 @@ from collections import Counter
 NUM_ROWS = 8
 NUM_COLS = 8
 
-DIRECTIONS = [0, 1, 2, 3]
-N, W, S, E = DIRECTIONS
+N, W, S, E = DIRECTIONS = [0, 1, 2, 3]
 HEADING_TO_CHAR = {
     N: 'N',
     W: 'W',
