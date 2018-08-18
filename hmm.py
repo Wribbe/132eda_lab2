@@ -14,6 +14,9 @@ HEADING_TO_CHAR = {
     E: 'E',
 }
 
+NUM_STATES = NUM_ROWS * NUM_COLS * len(HEADINGS)
+LEN_T = NUM_STATES * NUM_STATES
+
 PROB_KEEPING_HEADING = 0.7
 
 ROBOT_START_X = 0
@@ -22,8 +25,6 @@ ROBOT_START_Y = 0
 ROBOT_START_HEADING = N
 
 SENSOR_NOTHING = (None, None)
-
-PROB_KEEP_HEADING = 0.7
 
 class Robot:
     def __init__(self, x, y, heading):
@@ -106,7 +107,7 @@ class Robot:
         if self.facing_wall():
             self.heading = pick_new_heading()
         else:
-            if die_roll() > PROB_KEEP_HEADING:
+            if die_roll() > PROB_KEEPING_HEADING:
                 self.heading = pick_new_heading()
 
 def out_of_bounds(x, y):
@@ -122,6 +123,19 @@ def next_pos(x,y,heading):
         S: (x, y+1),
         W: (x-1, y),
     }[heading]
+
+def possible_pos(x, y, heading):
+    same = None
+    other = []
+    for h in HEADINGS:
+        pos = next_pos(x,y,h)
+        if out_of_bounds(*pos):
+            continue
+        elif h == heading:
+            same = pos
+        else:
+            other.append((*pos, h))
+    return (same, other)
 
 def check_probabilites(robot):
 
@@ -156,48 +170,35 @@ def check_probabilites(robot):
 
 class MatT():
     def __init__(self):
-        self.T = self.init_matrix()
+
+        self.T = [[0.0]*NUM_STATES for _ in range(NUM_STATES)]
         self.set_values()
+
+    def index(self,x,y,h):
+        lh = len(HEADINGS)
+        return y*NUM_COLS*lh + x*lh + h
 
     def probability(self, current_x, current_y, current_heading, next_x,
                     next_y, next_heading):
-        cx = current_x
-        cy = current_y
-        ch = current_heading
-        nx = next_x
-        ny = next_y
-        nh = next_heading
-        return self.T[ch][cy][cx][nh][ny][nx]
 
-    def init_matrix(self):
-        base = lambda : [[[0.0] * NUM_COLS for _ in range(NUM_ROWS)] for _ in
-                         HEADINGS]
-        return [[[base() for _ in range(NUM_COLS)] for _ in range(NUM_ROWS) ] for _
-                in HEADINGS]
+        index_current = self.index(current_x, current_y, current_heading)
+        index_next = self.index(next_x, next_y, next_heading)
+
+        return self.T[index_current][index_next]
 
     def set_values(self):
-        for heading in range(len(self.T)):
-            ys = self.T[heading]
-            for y in range(len(ys)):
-                xs = ys[y]
-                for x in range(len(xs)):
-                    forward_pos = None
-                    other_possible = []
-                    probability_total = 1.0
-                    for h in HEADINGS:
-                        pos = next_pos(x,y,h)
-                        if out_of_bounds(*pos):
-                            continue
-                        if h == heading:
-                            forward_pos = pos
-                        else:
-                            other_possible.append((*pos, h))
-                    if forward_pos:
-                        nx,ny = forward_pos
-                        xs[x][heading][ny][nx] = PROB_KEEPING_HEADING
-                        probability_total -= PROB_KEEPING_HEADING
-                    for nx,ny,nh in other_possible:
-                        xs[x][nh][ny][nx] = probability_total/len(other_possible)
+        for y in range(NUM_ROWS):
+            for x in range(NUM_COLS):
+                for h in range(len(HEADINGS)):
+                    current_row = self.T[self.index(x,y,h)]
+                    same, others = possible_pos(x, y, h)
+                    total_probability = 1.0
+                    if same:
+                        current_row[self.index(*same, h)]=PROB_KEEPING_HEADING
+                        total_probability -= PROB_KEEPING_HEADING
+                    for oth in others:
+                        prob_oth = total_probability/len(others)
+                        current_row[self.index(*oth)] = prob_oth
 
 class MatO():
     def __init__(self):
@@ -235,9 +236,11 @@ def main():
     T = MatT()
     O = MatO()
 
+    t = [1.0/NUM_STATES] * NUM_STATES
+
     print(T.probability(0,0,E,1,0,E))
-    print(T.probability(0,0,E,1,0,N))
-    print(T.probability(3,3,N,3,4,S))
+    print(T.probability(0,0,N,0,1,S))
+    print(T.probability(4,4,N,5,4,E))
 
     return 0
 
