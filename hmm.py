@@ -180,13 +180,11 @@ class MatT():
         self.T = [[0.0]*NUM_STATES for _ in range(NUM_STATES)]
         self.set_values()
 
-    def probability(self, current_x, current_y, current_heading, next_x,
-                    next_y, next_heading):
+    def getT(self, x, y, heading):
+        return self.T[index(x, y, heading)]
 
-        index_current = index(current_x, current_y, current_heading)
-        index_next = index(next_x, next_y, next_heading)
-
-        return self.T[index_current][index_next]
+    def __getitem__(self, i):
+        return self.T[i]
 
     def set_values(self):
         for y in range(NUM_ROWS):
@@ -268,21 +266,42 @@ def check_probabilities_heading(robot):
     print(fmt.format((count["Keep"]/total)*100))
     print("")
 
+def predict(t, T):
+    return [sum([ft*fT for (ft,fT) in zip(t,T[i])]) for i in range(NUM_STATES)]
+
+def update(t, O, reading):
+    if reading == SENSOR_NOTHING:
+        x, y = (NUM_COLS-1, NUM_ROWS)
+        obs_diag = O.O[-1]
+    else:
+        obs_diag = O.O[index(*reading,N)]
+    return [t*O for (t,O) in  zip(t,obs_diag)]
+
 def main():
 
     robot = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
 
-    check_probabilites(robot)
-    check_probabilities_heading(robot)
+    #check_probabilites(robot)
+    #check_probabilities_heading(robot)
 
     T = MatT()
     O = MatO()
 
     t = [1.0/NUM_STATES] * NUM_STATES
 
-    print(T.probability(0,0,E,1,0,E))
-    print(T.probability(0,0,N,0,1,S))
-    print(T.probability(2,2,N,3,2,E))
+    print(t)
+    t = predict(t,T)
+    print("")
+    print(t)
+    print("")
+    reading = robot.read_sensor()
+    t = update(t,O,reading)
+    print(t)
+    print("")
+
+    #print(T.probability(0,0,E,1,0,E))
+    #print(T.probability(0,0,N,0,1,S))
+    #print(T.probability(2,2,N,3,2,E))
 
     return 0
 
