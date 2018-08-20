@@ -282,7 +282,7 @@ def update(t, O, reading):
         obs_diag = O.O[index(*reading,N)]
     return [t*O for (t,O) in zip(t,obs_diag)]
 
-def main():
+def main(stdscr):
 
     robot = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
 
@@ -305,11 +305,42 @@ def main():
     print("")
     robot.move()
 
-    #print(T.probability(0,0,E,1,0,E))
-    #print(T.probability(0,0,N,0,1,S))
-    #print(T.probability(2,2,N,3,2,E))
+    draw(stdscr)
 
-    return 0
+def draw(stdscr):
+
+    curses.start_color()
+
+   # Clear screen
+    stdscr.clear()
+
+
+    # This raises ZeroDivisionError when i == 10.
+    for i in range(0, 10):
+        v = i-10
+        stdscr.addstr(i, 0, '10 divided by {} is {}'.format(v, 10/v))
+
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
+
+
+    stdscr.addstr(20, 0, "LINES: {}, COLS: {}".format(curses.LINES, curses.COLS))
+    stdscr.addstr(1,1, "Current mode: Typing mode", curses.A_REVERSE)
+    stdscr.addstr(22, 1, "Pretty text", curses.color_pair(1))
+    stdscr.addstr(23, 1, "Has color: {}".format(curses.has_colors()))
+    stdscr.border()
+
+    stdscr.hline(10, 10, curses.ACS_HLINE, 10)
+
+    center = [int(v) for v in [curses.LINES/2, curses.COLS/2]]
+    stdscr.addstr(*center, "C")
+
+
+    stdscr.refresh()
+    stdscr.getkey()
 
 if __name__ == "__main__":
-    main()
+    import curses
+    from curses import wrapper
+    wrapper(main)
+
+
