@@ -112,6 +112,11 @@ class Robot:
             if die_roll() > PROB_KEEPING_HEADING:
                 self.heading = pick_new_heading()
 
+    def move(self):
+        if self.facing_wall():
+            self.new_heading()
+        self.x, self.y = self.next_pos()
+
 def out_of_bounds(x, y):
     return any([x < 0, y < 0, x >= NUM_COLS, y >= NUM_ROWS])
 
@@ -298,6 +303,7 @@ def main():
     t = update(t,O,reading)
     print(t)
     print("")
+    robot.move()
 
     #print(T.probability(0,0,E,1,0,E))
     #print(T.probability(0,0,N,0,1,S))
