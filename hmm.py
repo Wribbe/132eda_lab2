@@ -280,7 +280,7 @@ def update(t, O, reading):
         obs_diag = O.O[-1]
     else:
         obs_diag = O.O[index(*reading,N)]
-    return [t*O for (t,O) in  zip(t,obs_diag)]
+    return [t*O for (t,O) in zip(t,obs_diag)]
 
 def main():
 
