@@ -14,7 +14,9 @@ HEADING_TO_CHAR = {
     E: 'E',
 }
 
-NUM_STATES = NUM_ROWS * NUM_COLS * len(HEADINGS)
+NUM_HEADINGS = len(HEADINGS)
+
+NUM_STATES = NUM_ROWS * NUM_COLS * NUM_HEADINGS
 LEN_T = NUM_STATES * NUM_STATES
 
 PROB_KEEPING_HEADING = 0.7
@@ -168,48 +170,88 @@ def check_probabilites(robot):
                                              (value/total)*100))
     print("")
 
+def index(x,y,h):
+    nh = NUM_HEADINGS
+    return y*NUM_COLS*nh + x*nh + h
+
 class MatT():
     def __init__(self):
 
         self.T = [[0.0]*NUM_STATES for _ in range(NUM_STATES)]
         self.set_values()
 
-    def index(self,x,y,h):
-        lh = len(HEADINGS)
-        return y*NUM_COLS*lh + x*lh + h
-
     def probability(self, current_x, current_y, current_heading, next_x,
                     next_y, next_heading):
 
-        index_current = self.index(current_x, current_y, current_heading)
-        index_next = self.index(next_x, next_y, next_heading)
+        index_current = index(current_x, current_y, current_heading)
+        index_next = index(next_x, next_y, next_heading)
 
         return self.T[index_current][index_next]
 
     def set_values(self):
         for y in range(NUM_ROWS):
             for x in range(NUM_COLS):
-                for h in range(len(HEADINGS)):
-                    current_row = self.T[self.index(x,y,h)]
+                for h in range(NUM_HEADINGS):
+                    current_row = self.T[index(x,y,h)]
                     same, others = possible_pos(x, y, h)
                     total_probability = 1.0
                     if same:
-                        current_row[self.index(*same, h)]=PROB_KEEPING_HEADING
+                        current_row[index(*same, h)]=PROB_KEEPING_HEADING
                         total_probability -= PROB_KEEPING_HEADING
                     for oth in others:
                         prob_oth = total_probability/len(others)
-                        current_row[self.index(*oth)] = prob_oth
+                        current_row[index(*oth)] = prob_oth
 
 class MatO():
     def __init__(self):
-        self.O = [[[0.0]*min(NUM_ROWS, NUM_COLS)] for _ in
-                  range(NUM_ROWS*NUM_COLS+1)]
 
-    def __str__(self):
-        text = []
-        for row in self.O:
-            text.append(' '.join(["{}".format(f) for f in row]))
-        return '\n'.join(text)
+        self.prob_correct = 0.1
+        self.prob_one_out = 0.05
+        self.prob_two_out = 0.025
+
+        self.O = [[0.0]*NUM_STATES for _ in range(NUM_STATES+1)]
+        self.set_values()
+
+    def probability(self, x, y, other_x, other_y):
+        return self.O[index(x,y,N)][index(other_x,other_y,N)]
+
+    def set_values(self):
+
+        def min_max_ranges(x,y):
+            NC = NUM_COLS
+            NR = NUM_ROWS
+            return (max(0, x-2),min(NC-1, x+2),max(0, y-2),min(NR-1, y+2))
+
+        nothing_diag = self.O[-1]
+
+        for y in range(NUM_ROWS):
+            for x in range(NUM_COLS):
+
+                n_Ls = 0
+                n_Ls2 = 0
+
+                diagonals = [self.O[index(x,y,h)] for h in HEADINGS]
+                ix_min, ix_max, iy_min, iy_max = min_max_ranges(x,y)
+                for iy in range(iy_min, iy_max+1):
+                    for ix in range(ix_min, ix_max+1):
+                        dx, dy = [abs(x-ix),abs(y-iy)]
+                        if dx == 0 and dy == 0:
+                            prob = self.prob_correct
+                        elif 2 in [dx, dy]:
+                            prob = self.prob_two_out
+                            n_Ls2 += 1
+                        else:
+                            prob = self.prob_one_out
+                            n_Ls += 1
+
+                        for diag in diagonals:
+                            for h in HEADINGS:
+                                diag[index(ix,iy,h)] = prob
+
+                prob_nothing = 1.0 - self.prob_correct - n_Ls * \
+                    self.prob_one_out - n_Ls2*self.prob_two_out
+                for h in HEADINGS:
+                        nothing_diag[index(x,y,h)] = prob_nothing
 
 def check_probabilities_heading(robot):
 
@@ -240,7 +282,7 @@ def main():
 
     print(T.probability(0,0,E,1,0,E))
     print(T.probability(0,0,N,0,1,S))
-    print(T.probability(4,4,N,5,4,E))
+    print(T.probability(2,2,N,3,2,E))
 
     return 0
 
