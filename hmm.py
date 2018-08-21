@@ -314,46 +314,30 @@ def draw(stdscr):
    # Clear screen
     stdscr.clear()
 
-
-    # This raises ZeroDivisionError when i == 10.
-#    for i in range(0, 10):
-#        v = i-10
-#        stdscr.addstr(i, 0, '10 divided by {} is {}'.format(v, 10/v))
-#
-#    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
-#
-#
-#    stdscr.addstr(20, 0, "LINES: {}, COLS: {}".format(curses.LINES, curses.COLS))
-#    stdscr.addstr(1,1, "Current mode: Typing mode", curses.A_REVERSE)
-#    stdscr.addstr(22, 1, "Pretty text", curses.color_pair(1))
-#    stdscr.addstr(23, 1, "Has color: {}".format(curses.has_colors()))
-#    stdscr.border()
-#
-#    stdscr.hline(10, 10, curses.ACS_HLINE, 10)
+    curses.curs_set(0)
 
     center = [int(v) for v in [curses.LINES/2, curses.COLS/2]]
     tile_border = 10
     tile_width = int((curses.COLS-2*tile_border)/NUM_COLS)
-    tile_height = int(tile_width*0.43)
+    tile_height = int(tile_width*0.50)
 
     grid_start_x = int(center[1]-(NUM_COLS/2)*tile_width)
     grid_end_x = grid_start_x+tile_width*NUM_COLS
+    grid_num_char_x = grid_end_x - grid_start_x
     x_stop = int(center[1]+(NUM_COLS/2)*tile_width)
 
-    grid_start_y = 1
-    grid_end_y = grid_start_y+tile_height*(NUM_ROWS+1)
+    grid_start_y = 5
+    grid_end_y = grid_start_y+tile_height*NUM_ROWS
     grid_num_char_y = grid_end_y - grid_start_y
 
     def between(start, stop, increment):
         return range(start, start+stop, increment)
 
-#    stdscr.addch(grid_start_y, grid_start_x, curses.ACS_ULCORNER)
-#    stdscr.addch(grid_start_y, grid_start_x+grid_last_x, curses.ACS_URCORNER)
-#    stdscr.hline(grid_start_y, grid_start_x+1, curses.ACS_HLINE, grid_last_x-1)
-
     for x in between(grid_start_x, (NUM_COLS+1)*tile_width, tile_width):
         stdscr.vline(grid_start_y, x, curses.ACS_VLINE, grid_num_char_y)
         for y in between(grid_start_y, grid_end_y, tile_height):
+            if x == grid_start_x:
+                stdscr.hline(y,x,curses.ACS_HLINE,grid_num_char_x)
             if y == grid_start_y and x == grid_start_x:
                 char = curses.ACS_ULCORNER
             elif y == grid_start_y and x == grid_end_x:
@@ -373,10 +357,6 @@ def draw(stdscr):
             else:
                 char = curses.ACS_PLUS
             stdscr.vline(y, x, char, 1)
-
-
-#    stdscr.addstr(*center, "C")
-
 
     stdscr.refresh()
     stdscr.getkey()
