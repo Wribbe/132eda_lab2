@@ -305,9 +305,9 @@ def main(stdscr):
     print("")
     robot.move()
 
-    draw(stdscr)
+    draw(stdscr, T)
 
-def draw(stdscr):
+def draw(stdscr, T):
 
     curses.start_color()
 
@@ -315,6 +315,7 @@ def draw(stdscr):
     stdscr.clear()
 
     curses.curs_set(0)
+
 
     center = [int(v) for v in [curses.LINES/2, curses.COLS/2]]
     tile_border = 10
@@ -330,8 +331,24 @@ def draw(stdscr):
     grid_end_y = grid_start_y+tile_height*NUM_ROWS
     grid_num_char_y = grid_end_y - grid_start_y
 
-    def between(start, stop, increment):
+    def between(start, stop, increment=1):
         return range(start, start+stop, increment)
+
+
+    colors = {
+        "BG_DEFAULT": (curses.COLOR_BLACK, curses.COLOR_WHITE),
+        "BG_RED": (curses.COLOR_BLACK, curses.COLOR_RED),
+        "BG_GREEN": (curses.COLOR_BLACK, curses.COLOR_GREEN),
+    }
+
+
+    for i, (name, pair) in enumerate(colors.items(), start=1):
+        curses.init_pair(i, *pair)
+        colors[name] = curses.color_pair(i)
+
+    color_tiles = [[colors["BG_DEFAULT"]] * NUM_COLS for _ in range(NUM_ROWS)]
+
+    stdscr.bkgd(' ', colors["BG_DEFAULT"])
 
     for x in between(grid_start_x, (NUM_COLS+1)*tile_width, tile_width):
         stdscr.vline(grid_start_y, x, curses.ACS_VLINE, grid_num_char_y)
@@ -357,6 +374,50 @@ def draw(stdscr):
             else:
                 char = curses.ACS_PLUS
             stdscr.vline(y, x, char, 1)
+
+    def tilestr(x,y,heading,string):
+        string = string.replace('0.', '.')
+        x_center = int(((tile_width)/2)-(len(string)/2))
+        y_center = int((tile_height)/2)
+        offsets = {
+            N: (x_center, 1),
+            E: (tile_width-len(string), y_center),
+            S: (x_center, tile_height-1),
+            W: (1, y_center),
+        }
+        x_offset, y_offset = offsets[heading]
+        rx = grid_start_x + x*tile_width + x_offset
+        ry = grid_start_y + y*tile_height + y_offset
+        stdscr.addstr(ry, rx, string, color_tiles[x][y])
+
+    def tilefill(x,y,color):
+        rx = grid_start_x + x*tile_width + 1
+        ry = grid_start_y + y*tile_height + 1
+        color_tiles[x][y] = color
+        for x in between(rx, tile_width-1):
+            for y in between(ry, tile_height-1):
+                stdscr.addstr(y,x,' ',color)
+
+    tilefill(2,2,colors["BG_RED"])
+    tilefill(1,1,colors["BG_RED"])
+
+    def tilecenter(x,y,color):
+        x_center = int((tile_width)/2)
+        y_center = int((tile_height)/2)
+        rx = grid_start_x + x*tile_width + x_center
+        ry = grid_start_y + y*tile_height + y_center
+        for x in range(rx-1, rx+2):
+            for y in range(ry, ry+2):
+                stdscr.addstr(y, x, ' ', color)
+
+    tilecenter(1,1,colors["BG_GREEN"])
+
+    for h in HEADINGS:
+        tilestr(1,1,h,"{:.3f}".format(.003))
+
+#    for f in T[0]:
+
+
 
     stdscr.refresh()
     stdscr.getkey()
