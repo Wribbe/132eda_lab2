@@ -401,6 +401,15 @@ def draw(stdscr, T):
     tilefill(2,2,colors["BG_RED"])
     tilefill(1,1,colors["BG_RED"])
 
+    pos_statusbar_offset_y = 3
+    pos_statusbar_y = grid_start_y + tile_height*NUM_ROWS + \
+        pos_statusbar_offset_y
+    pos_statusbar_x = tile_border
+
+    def statusbar(text="STATUS"):
+        stdscr.addstr(pos_statusbar_y, pos_statusbar_x, ' '*128)
+        stdscr.addstr(pos_statusbar_y, pos_statusbar_x, text)
+
     def tilecenter(x,y,color):
         x_center = int((tile_width)/2)
         y_center = int((tile_height)/2)
@@ -415,12 +424,13 @@ def draw(stdscr, T):
     for h in HEADINGS:
         tilestr(1,1,h,"{:.3f}".format(.003))
 
+    statusbar()
 #    for f in T[0]:
-
-
-
-    stdscr.refresh()
-    stdscr.getkey()
+    key = stdscr.getkey().lower()
+    while key != 'q':
+        statusbar(key)
+        stdscr.refresh()
+        key = stdscr.getkey().lower()
 
 if __name__ == "__main__":
     import curses
