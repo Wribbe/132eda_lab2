@@ -401,14 +401,10 @@ def draw(stdscr, T):
     tilefill(2,2,colors["BG_RED"])
     tilefill(1,1,colors["BG_RED"])
 
-    pos_statusbar_offset_y = 3
+    pos_statusbar_offset_y = 2
     pos_statusbar_y = grid_start_y + tile_height*NUM_ROWS + \
         pos_statusbar_offset_y
     pos_statusbar_x = tile_border
-
-    def statusbar(text="STATUS"):
-        stdscr.addstr(pos_statusbar_y, pos_statusbar_x, ' '*128)
-        stdscr.addstr(pos_statusbar_y, pos_statusbar_x, text)
 
     def tilecenter(x,y,color):
         x_center = int((tile_width)/2)
@@ -424,11 +420,36 @@ def draw(stdscr, T):
     for h in HEADINGS:
         tilestr(1,1,h,"{:.3f}".format(.003))
 
-    statusbar()
+    KEY_QUIT = 'q'
+    KEY_TOGGLE_MODE = '\t'
+    KEY_MOVE_ROBOT = 'm'
+
+    key_to_string = {
+        '\t': "TAB",
+    }
+
+    keys_general = {
+        KEY_QUIT: "Quit",
+        KEY_TOGGLE_MODE: "Change mode",
+    }
+
+    keys_tracking = {
+        KEY_MOVE_ROBOT: "Step robot",
+    }
+
+    def infobar():
+        current_x = pos_statusbar_x
+        stdscr.addstr(pos_statusbar_y, pos_statusbar_x, ' '*128)
+        for key, desc in sorted(keys_general.items()):
+            out = "{}: {}, ".format(key_to_string.get(key, key), desc)
+            stdscr.addstr(pos_statusbar_y, current_x, out)
+            current_x += len(out)
+        stdscr.addstr(pos_statusbar_y, current_x-2, ' ')
+
 #    for f in T[0]:
-    key = stdscr.getkey().lower()
+    key = None
     while key != 'q':
-        statusbar(key)
+        infobar()
         stdscr.refresh()
         key = stdscr.getkey().lower()
 
