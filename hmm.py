@@ -309,63 +309,6 @@ def main(stdscr):
 
 def draw(stdscr, T):
 
-    curses.start_color()
-
-   # Clear screen
-    stdscr.clear()
-
-    curses.curs_set(0)
-
-
-    center = [int(v) for v in [curses.LINES/2, curses.COLS/2]]
-    tile_border = 10
-    tile_width = int((curses.COLS-2*tile_border)/NUM_COLS)
-    tile_height = int(tile_width*0.50)
-
-    grid_start_x = int(center[1]-(NUM_COLS/2)*tile_width)
-    grid_end_x = grid_start_x+tile_width*NUM_COLS
-    grid_num_char_x = grid_end_x - grid_start_x
-    x_stop = int(center[1]+(NUM_COLS/2)*tile_width)
-
-    grid_start_y = 5
-    grid_end_y = grid_start_y+tile_height*NUM_ROWS
-    grid_num_char_y = grid_end_y - grid_start_y
-
-    pos_statusbar_offset_y = 2
-    pos_statusbar_y = grid_start_y + tile_height*NUM_ROWS + \
-        pos_statusbar_offset_y
-    pos_statusbar_x = tile_border
-
-    colors = {
-        "BG_DEFAULT": (curses.COLOR_BLACK, curses.COLOR_WHITE),
-        "BG_RED": (curses.COLOR_BLACK, curses.COLOR_RED),
-        "BG_GREEN": (curses.COLOR_BLACK, curses.COLOR_GREEN),
-    }
-
-    for i, (name, pair) in enumerate(colors.items(), start=1):
-        curses.init_pair(i, *pair)
-        colors[name] = curses.color_pair(i)
-
-    color_tiles = [[colors["BG_DEFAULT"]] * NUM_COLS for _ in range(NUM_ROWS)]
-    stdscr.bkgd(' ', colors["BG_DEFAULT"])
-
-    KEY_QUIT = 'q'
-    KEY_TOGGLE_MODE = '\t'
-    KEY_MOVE_ROBOT = 'm'
-
-    key_to_string = {
-        '\t': "TAB",
-    }
-
-    keys_general = {
-        KEY_QUIT: "Quit",
-        KEY_TOGGLE_MODE: "Change mode",
-    }
-
-    keys_tracking = {
-        KEY_MOVE_ROBOT: "Step robot",
-    }
-
     def between(start, stop, increment=1):
         return range(start, start+stop, increment)
 
@@ -433,19 +376,104 @@ def draw(stdscr, T):
     def infobar():
         current_x = pos_statusbar_x
         stdscr.addstr(pos_statusbar_y, pos_statusbar_x, ' '*128)
-        for key, desc in sorted(keys_general.items()):
+        for key, desc in sorted(keys["general"].items()):
             out = "{}: {}, ".format(key_to_string.get(key, key), desc)
             stdscr.addstr(pos_statusbar_y, current_x, out)
             current_x += len(out)
         stdscr.addstr(pos_statusbar_y, current_x-2, ' ')
 
+    def display_mode():
+        stdscr.addstr(1, 0, " "*128, colors['BG_DEFAULT'])
+        mode = mode_list[current_mode]
+        stdscr.addstr(1, 1, "Mode: {}.".format(mode.capitalize()),
+                      curses.A_STANDOUT)
+
+    current_mode = 0
+
+    def next_mode():
+        nonlocal current_mode
+        if current_mode+1 > len(keys['modes'])-1:
+            current_mode = 0
+        else:
+            current_mode += 1
+        return mode_list[current_mode]
+
+    curses.start_color()
+
+   # Clear screen
+    stdscr.clear()
+
+    curses.curs_set(0)
+
+
+    center = [int(v) for v in [curses.LINES/2, curses.COLS/2]]
+    tile_border = 10
+    tile_width = int((curses.COLS-2*tile_border)/NUM_COLS)
+    tile_height = int(tile_width*0.50)
+
+    grid_start_x = int(center[1]-(NUM_COLS/2)*tile_width)
+    grid_end_x = grid_start_x+tile_width*NUM_COLS
+    grid_num_char_x = grid_end_x - grid_start_x
+    x_stop = int(center[1]+(NUM_COLS/2)*tile_width)
+
+    grid_start_y = 5
+    grid_end_y = grid_start_y+tile_height*NUM_ROWS
+    grid_num_char_y = grid_end_y - grid_start_y
+
+    pos_statusbar_offset_y = 2
+    pos_statusbar_y = grid_start_y + tile_height*NUM_ROWS + \
+        pos_statusbar_offset_y
+    pos_statusbar_x = tile_border
+
+    colors = {
+        "BG_DEFAULT": (curses.COLOR_BLACK, curses.COLOR_WHITE),
+        "BG_RED": (curses.COLOR_BLACK, curses.COLOR_RED),
+        "BG_GREEN": (curses.COLOR_BLACK, curses.COLOR_GREEN),
+    }
+
+    for i, (name, pair) in enumerate(colors.items(), start=1):
+        curses.init_pair(i, *pair)
+        colors[name] = curses.color_pair(i)
+
+    color_tiles = [[colors["BG_DEFAULT"]] * NUM_COLS for _ in range(NUM_ROWS)]
+    stdscr.bkgd(' ', colors["BG_DEFAULT"])
+
+    KEY_QUIT = 'q'
+    KEY_SWITCH_MODE = '\t'
+    KEY_NEXT = 'n'
+
+    key_to_string = {
+        '\t': "TAB",
+    }
+
+    keys = {
+        'general': {
+            KEY_QUIT: "Quit",
+            KEY_SWITCH_MODE: "Switch mode",
+        },
+        'modes': {
+            'tracking': {
+                KEY_NEXT: "Step robot",
+            },
+            'probability headings': {
+                KEY_NEXT: "Cycle headings",
+            },
+            'probability nothing': {
+            },
+        },
+    }
+
+    mode_list = list(keys['modes'].keys())
 
     key = None
     while key != KEY_QUIT:
         draw_grid()
+        display_mode()
         infobar()
         stdscr.refresh()
         key = stdscr.getkey().lower()
+        if key == KEY_SWITCH_MODE:
+            next_mode()
 
 if __name__ == "__main__":
     import curses
