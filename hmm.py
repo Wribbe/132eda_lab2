@@ -404,16 +404,16 @@ def draw(stdscr, robot, T, O):
         stdscr.addstr(1, 1, "Mode: {}.".format(mode.capitalize()),
                       curses.A_STANDOUT)
 
+    current_sensor = SENSOR_NOTHING
     def fill_grid():
         mat = None
         mode = mode_list[current_mode]
         if mode == 'probability nothing':
             mat = O[-1]
         elif mode == 'tracking':
-            reading = robot.read_sensor()
             tilecenter(*robot.location(), colors["COLOR_TRUE"])
-            if reading != SENSOR_NOTHING:
-                tilecorner(*reading, colors["COLOR_SENSOR"])
+            if current_sensor != SENSOR_NOTHING:
+                tilecorner(*current_sensor, colors["COLOR_SENSOR"])
         if mat:
             for y in range(NUM_ROWS):
                 for x in range(NUM_COLS):
@@ -514,6 +514,7 @@ def draw(stdscr, robot, T, O):
         elif key == KEY_NEXT:
             if mode == 'tracking':
                 robot.move()
+                current_sensor = robot.read_sensor()
 
 if __name__ == "__main__":
     import curses
