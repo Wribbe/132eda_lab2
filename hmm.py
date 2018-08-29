@@ -524,6 +524,41 @@ def draw(stdscr, robot, T, TT, O, t):
         else:
             stdscr.addstr(y, x, "Avg. manhattan: {}".format("..."))
 
+    def calc_relations():
+        center = [int(v) for v in [curses.LINES/2, curses.COLS/2]]
+        ratio = int(curses.COLS / curses.LINES)
+        tile_height = 0
+        tile_width = 0
+        if (curses.COLS < curses.LINES):
+            tile_side = int((curses.COLS-2*tile_border)/NUM_COLS)
+            tile_height = tile_side*2
+            tile_width = tile_side
+        else:
+            tile_side = int((curses.LINES-2*tile_border)/NUM_ROWS)
+            tile_height = tile_side
+            tile_width = tile_side*2
+
+
+        grid_start_x = int(center[1]-(NUM_COLS/2)*tile_width)
+        grid_end_x = grid_start_x+tile_width*NUM_COLS
+        grid_num_char_x = grid_end_x - grid_start_x
+        x_stop = int(center[1]+(NUM_COLS/2)*tile_width)
+
+        grid_end_y = grid_start_y+tile_height*NUM_ROWS
+        grid_num_char_y = grid_end_y - grid_start_y
+
+        pos_statusbar_y = grid_start_y + tile_height*NUM_ROWS + \
+            pos_statusbar_offset_y
+        pos_statusbar_x = tile_border
+
+        pos_info_tracking_y = pos_statusbar_y + 2
+
+        return [center, ratio, tile_height, tile_width, grid_start_x,
+                grid_end_x, grid_num_char_x, x_stop, grid_end_y,
+                grid_num_char_y, pos_statusbar_y, pos_statusbar_x,
+                pos_info_tracking_y]
+
+
     curses.start_color()
 
    # Clear screen
@@ -531,34 +566,16 @@ def draw(stdscr, robot, T, TT, O, t):
 
     curses.curs_set(0)
 
-
-    center = [int(v) for v in [curses.LINES/2, curses.COLS/2]]
-    tile_border = 10
-    ratio = curses.COLS / curses.LINES
-    if (curses.COLS*2 < curses.LINES):
-        tile_side = (curses.COLS-2*tile_border)/NUM_COLS
-    else:
-        tile_side = (curses.LINES-2*tile_border)/NUM_ROWS
-    tile_side = int(tile_side)
-
-    tile_height = tile_side
-    tile_width = tile_side*2
-
-    grid_start_x = int(center[1]-(NUM_COLS/2)*tile_width)
-    grid_end_x = grid_start_x+tile_width*NUM_COLS
-    grid_num_char_x = grid_end_x - grid_start_x
-    x_stop = int(center[1]+(NUM_COLS/2)*tile_width)
-
+    tile_border = 6
     grid_start_y = 5
-    grid_end_y = grid_start_y+tile_height*NUM_ROWS
-    grid_num_char_y = grid_end_y - grid_start_y
-
     pos_statusbar_offset_y = 2
-    pos_statusbar_y = grid_start_y + tile_height*NUM_ROWS + \
-        pos_statusbar_offset_y
-    pos_statusbar_x = tile_border
 
-    pos_info_tracking_y = pos_statusbar_y + 2
+    center, ratio, tile_height, tile_width, grid_start_x, grid_end_x, \
+    grid_num_char_x, x_stop, grid_end_y, grid_num_char_y, pos_statusbar_y, \
+    pos_statusbar_x, pos_info_tracking_y = calc_relations()
+
+    current_cols = curses.COLS
+    current_lines = curses.LINES
 
     colors = {
         "BG_DEFAULT": (curses.COLOR_BLACK, curses.COLOR_WHITE),
@@ -614,6 +631,17 @@ def draw(stdscr, robot, T, TT, O, t):
 
     key = None
     while key != KEY_QUIT:
+
+        resized = curses.is_term_resized(curses.LINES, curses.COLS)
+        if resized:
+            stdscr.clear()
+            curses.LINES, curses.COLS = stdscr.getmaxyx()
+            center, ratio, tile_height, tile_width, grid_start_x, grid_end_x, \
+            grid_num_char_x, x_stop, grid_end_y, grid_num_char_y, pos_statusbar_y, \
+            pos_statusbar_x, pos_info_tracking_y = calc_relations()
+            current_cols = curses.COLS
+            current_lines = curses.LINES
+
         draw_grid()
         display_mode()
 
@@ -636,6 +664,7 @@ def draw(stdscr, robot, T, TT, O, t):
 
         infobar()
         fill_grid()
+
         stdscr.refresh()
 
         key = stdscr.getkey().lower()
@@ -660,11 +689,10 @@ def draw(stdscr, robot, T, TT, O, t):
                             max_x, max_y = [x,y]
 
                 current_max = (max_x, max_y)
-#                stdscr.addstr(70, 5, " "*128)
-#                stdscr.addstr(71, 5, "{}".format(current_max))
                 iterations_tracking += 1
             elif mode == 'probability headings':
                 cycle_headings()
+
 
 if __name__ == "__main__":
     import curses
