@@ -256,6 +256,9 @@ class MatO():
                 for h in HEADINGS:
                         nothing_diag[index(x,y,h)] = prob_nothing
 
+    def __getitem__(self, i):
+        return self.O[i]
+
 def check_probabilities_heading(robot):
 
     count = Counter()
@@ -305,9 +308,9 @@ def main(stdscr):
     print("")
     robot.move()
 
-    draw(stdscr, T)
+    draw(stdscr, T, O)
 
-def draw(stdscr, T):
+def draw(stdscr, T, O):
 
     def between(start, stop, increment=1):
         return range(start, start+stop, increment)
@@ -393,6 +396,16 @@ def draw(stdscr, T):
         stdscr.addstr(1, 1, "Mode: {}.".format(mode.capitalize()),
                       curses.A_STANDOUT)
 
+    def fill_grid():
+        mat = None
+        if mode_list[current_mode] == 'probability nothing':
+            mat = O[-1]
+        if mat:
+            for y in range(NUM_ROWS):
+                for x in range(NUM_COLS):
+                    for h in HEADINGS:
+                        tilestr(x, y, h, "{:.3f}".format(mat[index(x,y,h)]))
+
     current_mode = 0
 
     def next_mode():
@@ -475,6 +488,7 @@ def draw(stdscr, T):
         draw_grid()
         display_mode()
         infobar()
+        fill_grid()
         stdscr.refresh()
         key = stdscr.getkey().lower()
         if key == KEY_SWITCH_MODE:
