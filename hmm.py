@@ -433,7 +433,7 @@ def draw(stdscr, robot, T, TT, O, t):
     current_cycle = (0,0,N)
     def fill_grid():
 
-        draw_all = True
+        sum_prob = False
 
         mat = None
         mode = mode_list[current_mode]
@@ -445,7 +445,7 @@ def draw(stdscr, robot, T, TT, O, t):
             if current_sensor != SENSOR_NOTHING:
                 tilecorner(*current_sensor, colors["COLOR_SENSOR"])
             mat = t
-#            draw_all = False
+            sum_prob = True
         elif mode == 'probability headings':
             mat = T[index(*current_cycle)]
             x,y,h = current_cycle
@@ -455,10 +455,11 @@ def draw(stdscr, robot, T, TT, O, t):
             for y in range(NUM_ROWS):
                 for x in range(NUM_COLS):
                     for h in HEADINGS:
-                        if draw_all:
+                        if not sum_prob:
                             tilestr(x, y, h, "{:.3f}".format(mat[index(x,y,h)]))
                         else:
-                            tilestr(x, y, N, "{:.3f}".format(mat[index(x,y,N)]))
+                            tilestr(x, y, N, "{:.3f}".format(prob_sum(x,y)))
+                            break
 
     current_mode = 0
 
@@ -484,6 +485,28 @@ def draw(stdscr, robot, T, TT, O, t):
         if y >= NUM_ROWS:
             y = 0
         current_cycle = (x,y,h)
+
+    def manhattan_get():
+        manhattan_x, manhattan_y = [0, 0]
+        max_x, max_y = current_max
+        current_x, current_y = robot.location()
+        delta_x, delta_y = [1,1]
+        if current_x < max_x:
+            delta_x *= -1
+        if current_y < max_y:
+            delta_y *= -1
+        while max_x != current_x:
+            max_x += delta_x
+            manhattan_x += 1
+        while max_y != current_y:
+            max_y += delta_y
+            manhattan_y += 1
+        return manhattan_x + manhattan_y
+
+    def prob_sum(x,y):
+        i = index(x,y,N)
+        return sum(t[i:i+NUM_HEADINGS])
+
 
     curses.start_color()
 
@@ -558,17 +581,38 @@ def draw(stdscr, robot, T, TT, O, t):
     mode_list = list(keys['modes'].keys())
     current_max = (0,0)
 
+    iterations_tracking = 0
+    sum_manhattan = 0
+
     key = None
     while key != KEY_QUIT:
         draw_grid()
-        tilefill(*current_max, colors["BG_RED"])
         display_mode()
+
+        mode = mode_list[current_mode]
+        if mode == 'tracking':
+            tilefill(*current_max, colors["BG_RED"])
+
+            for x in range(NUM_COLS):
+                for y in range(NUM_ROWS):
+                    prob = prob_sum(x,y)
+
+            stdscr.addstr(74, 5, "Iteration: {}".format(iterations_tracking))
+            dist_manhattan = manhattan_get()
+            sum_manhattan += dist_manhattan
+            stdscr.addstr(75, 5, "Manhattan dist: {}".format(dist_manhattan))
+            if (sum_manhattan and iterations_tracking):
+                manhattan_avg = sum_manhattan / iterations_tracking
+                stdscr.addstr(76, 5, "Avg. manhattan: {}".format(manhattan_avg))
+
         infobar()
         fill_grid()
         stdscr.refresh()
+
         key = stdscr.getkey().lower()
-        mode = mode_list[current_mode]
+
         if key == KEY_SWITCH_MODE:
+            stdscr.clear()
             next_mode()
         elif key == KEY_NEXT:
             if mode == 'tracking':
@@ -577,13 +621,19 @@ def draw(stdscr, robot, T, TT, O, t):
                 current_sensor = robot.read_sensor()
                 t = update(t, O, current_sensor)
                 t = normalize(t)
-                max_t = max(t)
-                i_max = t.index(max_t)
-                maxx, maxy, _ = coords(i_max)
-                current_max = (maxx, maxy)
+                current_max = 0
+                max_x, max_y = [0,0]
+                for x in range(NUM_COLS):
+                    for y in range(NUM_ROWS):
+                        sum_t = prob_sum(x,y)
+                        if sum_t > current_max:
+                            current_max = sum_t
+                            max_x, max_y = [x,y]
+
+                current_max = (max_x, max_y)
                 stdscr.addstr(70, 5, " "*128)
-                stdscr.addstr(70, 5, "{}".format(i_max))
-                stdscr.addstr(71, 5, "{}".format(max_t))
+                stdscr.addstr(71, 5, "{}".format(current_max))
+                iterations_tracking += 1
             elif mode == 'probability headings':
                 cycle_headings()
 
