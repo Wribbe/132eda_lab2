@@ -380,6 +380,11 @@ def draw(stdscr, T):
             out = "{}: {}, ".format(key_to_string.get(key, key), desc)
             stdscr.addstr(pos_statusbar_y, current_x, out)
             current_x += len(out)
+        mode = mode_list[current_mode]
+        for key, desc in sorted(keys['modes'][mode].items()):
+            out = "{}: {}, ".format(key_to_string.get(key, key), desc)
+            stdscr.addstr(pos_statusbar_y, current_x, out)
+            current_x += len(out)
         stdscr.addstr(pos_statusbar_y, current_x-2, ' ')
 
     def display_mode():
