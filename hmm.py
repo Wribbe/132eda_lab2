@@ -538,7 +538,6 @@ def draw(stdscr, robot, T, TT, O, t):
             tile_height = tile_side
             tile_width = tile_side*2
 
-
         grid_start_x = int(center[1]-(NUM_COLS/2)*tile_width)
         grid_end_x = grid_start_x+tile_width*NUM_COLS
         grid_num_char_x = grid_end_x - grid_start_x
@@ -558,6 +557,27 @@ def draw(stdscr, robot, T, TT, O, t):
                 grid_num_char_y, pos_statusbar_y, pos_statusbar_x,
                 pos_info_tracking_y]
 
+
+    def color_key_tracking():
+        y = pos_info_tracking_y
+        x_start = center[1]
+        x = x_start
+        keys = [
+            ("robot", "COLOR_TRUE"),
+            ("sensor", "COLOR_SENSOR"),
+            ("max", "BG_RED"),
+            (">0.200", "BG_MAGENTA"),
+            (">0.100", "BG_BLUE"),
+            (">0.000", "BG_YELLOW"),
+        ]
+        for text, color in keys:
+            x_add = len(text)+4
+            if x+x_add > curses.COLS:
+                x = x_start
+                y += 1
+            stdscr.addstr(y, x, "  ", colors[color])
+            stdscr.addstr(y, x+2, ":{} ".format(text))
+            x += x_add
 
     curses.start_color()
 
@@ -661,6 +681,7 @@ def draw(stdscr, robot, T, TT, O, t):
             tilefill(*current_max, colors["BG_RED"])
 
             info_trancking()
+            color_key_tracking()
 
         infobar()
         fill_grid()
