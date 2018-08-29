@@ -331,9 +331,10 @@ def draw(stdscr, T):
     grid_end_y = grid_start_y+tile_height*NUM_ROWS
     grid_num_char_y = grid_end_y - grid_start_y
 
-    def between(start, stop, increment=1):
-        return range(start, start+stop, increment)
-
+    pos_statusbar_offset_y = 2
+    pos_statusbar_y = grid_start_y + tile_height*NUM_ROWS + \
+        pos_statusbar_offset_y
+    pos_statusbar_x = tile_border
 
     colors = {
         "BG_DEFAULT": (curses.COLOR_BLACK, curses.COLOR_WHITE),
@@ -341,39 +342,61 @@ def draw(stdscr, T):
         "BG_GREEN": (curses.COLOR_BLACK, curses.COLOR_GREEN),
     }
 
-
     for i, (name, pair) in enumerate(colors.items(), start=1):
         curses.init_pair(i, *pair)
         colors[name] = curses.color_pair(i)
 
     color_tiles = [[colors["BG_DEFAULT"]] * NUM_COLS for _ in range(NUM_ROWS)]
-
     stdscr.bkgd(' ', colors["BG_DEFAULT"])
 
-    for x in between(grid_start_x, (NUM_COLS+1)*tile_width, tile_width):
-        stdscr.vline(grid_start_y, x, curses.ACS_VLINE, grid_num_char_y)
-        for y in between(grid_start_y, grid_end_y, tile_height):
-            if x == grid_start_x:
-                stdscr.hline(y,x,curses.ACS_HLINE,grid_num_char_x)
-            if y == grid_start_y and x == grid_start_x:
-                char = curses.ACS_ULCORNER
-            elif y == grid_start_y and x == grid_end_x:
-                char = curses.ACS_URCORNER
-            elif y == grid_end_y and x == grid_end_x:
-                char = curses.ACS_LRCORNER
-            elif y == grid_end_y and x == grid_start_x:
-                char = curses.ACS_LLCORNER
-            elif y == grid_start_y:
-                char = curses.ACS_TTEE
-            elif y == grid_end_y:
-                char = curses.ACS_BTEE
-            elif x == grid_end_x:
-                char = curses.ACS_RTEE
-            elif x == grid_start_x:
-                char = curses.ACS_LTEE
-            else:
-                char = curses.ACS_PLUS
-            stdscr.vline(y, x, char, 1)
+    KEY_QUIT = 'q'
+    KEY_TOGGLE_MODE = '\t'
+    KEY_MOVE_ROBOT = 'm'
+
+    key_to_string = {
+        '\t': "TAB",
+    }
+
+    keys_general = {
+        KEY_QUIT: "Quit",
+        KEY_TOGGLE_MODE: "Change mode",
+    }
+
+    keys_tracking = {
+        KEY_MOVE_ROBOT: "Step robot",
+    }
+
+    def between(start, stop, increment=1):
+        return range(start, start+stop, increment)
+
+    def draw_grid():
+        for x in between(grid_start_x, (NUM_COLS+1)*tile_width, tile_width):
+            stdscr.vline(grid_start_y, x, curses.ACS_VLINE, grid_num_char_y)
+            for y in between(grid_start_y, grid_end_y, tile_height):
+                if x == grid_start_x:
+                    stdscr.hline(y,x,curses.ACS_HLINE,grid_num_char_x)
+                if y == grid_start_y and x == grid_start_x:
+                    char = curses.ACS_ULCORNER
+                elif y == grid_start_y and x == grid_end_x:
+                    char = curses.ACS_URCORNER
+                elif y == grid_end_y and x == grid_end_x:
+                    char = curses.ACS_LRCORNER
+                elif y == grid_end_y and x == grid_start_x:
+                    char = curses.ACS_LLCORNER
+                elif y == grid_start_y:
+                    char = curses.ACS_TTEE
+                elif y == grid_end_y:
+                    char = curses.ACS_BTEE
+                elif x == grid_end_x:
+                    char = curses.ACS_RTEE
+                elif x == grid_start_x:
+                    char = curses.ACS_LTEE
+                else:
+                    char = curses.ACS_PLUS
+                stdscr.vline(y, x, char, 1)
+        for y in range(NUM_ROWS):
+            for x in range(NUM_COLS):
+                tilefill(x,y,colors["BG_DEFAULT"])
 
     def tilestr(x,y,heading,string):
         string = string.replace('0.', '.')
@@ -398,14 +421,6 @@ def draw(stdscr, T):
             for y in between(ry, tile_height-1):
                 stdscr.addstr(y,x,' ',color)
 
-    tilefill(2,2,colors["BG_RED"])
-    tilefill(1,1,colors["BG_RED"])
-
-    pos_statusbar_offset_y = 2
-    pos_statusbar_y = grid_start_y + tile_height*NUM_ROWS + \
-        pos_statusbar_offset_y
-    pos_statusbar_x = tile_border
-
     def tilecenter(x,y,color):
         x_center = int((tile_width)/2)
         y_center = int((tile_height)/2)
@@ -414,28 +429,6 @@ def draw(stdscr, T):
         for x in range(rx-1, rx+2):
             for y in range(ry, ry+2):
                 stdscr.addstr(y, x, ' ', color)
-
-    tilecenter(1,1,colors["BG_GREEN"])
-
-    for h in HEADINGS:
-        tilestr(1,1,h,"{:.3f}".format(.003))
-
-    KEY_QUIT = 'q'
-    KEY_TOGGLE_MODE = '\t'
-    KEY_MOVE_ROBOT = 'm'
-
-    key_to_string = {
-        '\t': "TAB",
-    }
-
-    keys_general = {
-        KEY_QUIT: "Quit",
-        KEY_TOGGLE_MODE: "Change mode",
-    }
-
-    keys_tracking = {
-        KEY_MOVE_ROBOT: "Step robot",
-    }
 
     def infobar():
         current_x = pos_statusbar_x
@@ -446,9 +439,10 @@ def draw(stdscr, T):
             current_x += len(out)
         stdscr.addstr(pos_statusbar_y, current_x-2, ' ')
 
-#    for f in T[0]:
+
     key = None
-    while key != 'q':
+    while key != KEY_QUIT:
+        draw_grid()
         infobar()
         stdscr.refresh()
         key = stdscr.getkey().lower()
