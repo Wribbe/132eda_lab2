@@ -409,6 +409,8 @@ def draw(stdscr, robot, T, O, t):
     current_cycle = (0,0,N)
     def fill_grid():
 
+        draw_all = True
+
         mat = None
         mode = mode_list[current_mode]
 
@@ -419,6 +421,7 @@ def draw(stdscr, robot, T, O, t):
             if current_sensor != SENSOR_NOTHING:
                 tilecorner(*current_sensor, colors["COLOR_SENSOR"])
             mat = t
+            draw_all = False
         elif mode == 'probability headings':
             mat = T[index(*current_cycle)]
             x,y,h = current_cycle
@@ -429,6 +432,8 @@ def draw(stdscr, robot, T, O, t):
                 for x in range(NUM_COLS):
                     for h in HEADINGS:
                         tilestr(x, y, h, "{:.3f}".format(mat[index(x,y,h)]))
+                        if not draw_all:
+                            break
 
     current_mode = 0
 
