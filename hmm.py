@@ -113,7 +113,8 @@ class Robot:
                 self.heading = pick_new_heading()
 
     def move(self):
-        if self.facing_wall():
+        self.new_heading()
+        while self.facing_wall():
             self.new_heading()
         self.x, self.y = self.next_pos()
 
@@ -306,11 +307,11 @@ def main(stdscr):
     t = update(t,O,reading)
     print(t)
     print("")
-    robot.move()
+#    robot.move()
 
-    draw(stdscr, T, O)
+    draw(stdscr, robot, T, O)
 
-def draw(stdscr, T, O):
+def draw(stdscr, robot, T, O):
 
     def between(start, stop, increment=1):
         return range(start, start+stop, increment)
@@ -398,8 +399,11 @@ def draw(stdscr, T, O):
 
     def fill_grid():
         mat = None
-        if mode_list[current_mode] == 'probability nothing':
+        mode = mode_list[current_mode]
+        if mode == 'probability nothing':
             mat = O[-1]
+        elif mode == 'tracking':
+            tilecenter(*robot.location(), colors["COLOR_TRUE"])
         if mat:
             for y in range(NUM_ROWS):
                 for x in range(NUM_COLS):
@@ -447,6 +451,7 @@ def draw(stdscr, T, O):
         "BG_DEFAULT": (curses.COLOR_BLACK, curses.COLOR_WHITE),
         "BG_RED": (curses.COLOR_BLACK, curses.COLOR_RED),
         "BG_GREEN": (curses.COLOR_BLACK, curses.COLOR_GREEN),
+        "COLOR_TRUE": (curses.COLOR_BLACK, curses.COLOR_BLACK),
     }
 
     for i, (name, pair) in enumerate(colors.items(), start=1):
@@ -491,8 +496,12 @@ def draw(stdscr, T, O):
         fill_grid()
         stdscr.refresh()
         key = stdscr.getkey().lower()
+        mode = mode_list[current_mode]
         if key == KEY_SWITCH_MODE:
             next_mode()
+        elif key == KEY_NEXT:
+            if mode == 'tracking':
+                robot.move()
 
 if __name__ == "__main__":
     import curses
