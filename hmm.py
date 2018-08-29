@@ -3,8 +3,8 @@
 import random
 from collections import Counter
 
-NUM_ROWS = 8
-NUM_COLS = 8
+NUM_ROWS = 10
+NUM_COLS = 10
 
 N, E, S, W = HEADINGS = [0, 1, 2, 3]
 HEADING_TO_CHAR = {
@@ -507,6 +507,22 @@ def draw(stdscr, robot, T, TT, O, t):
         i = index(x,y,N)
         return sum(t[i:i+NUM_HEADINGS])
 
+    def info_trancking():
+        nonlocal sum_manhattan
+        y = pos_info_tracking_y
+        x = tile_border
+        stdscr.addstr(y, x, "Iteration: {}".format(iterations_tracking))
+        dist_manhattan = manhattan_get()
+        sum_manhattan += dist_manhattan
+        y+= 1
+        stdscr.addstr(y, x, " "*128)
+        stdscr.addstr(y, x, "Manhattan dist: {}".format(dist_manhattan))
+        y+= 1
+        if (sum_manhattan and iterations_tracking):
+            manhattan_avg = sum_manhattan / iterations_tracking
+            stdscr.addstr(y, x, "Avg. manhattan: {}".format(manhattan_avg))
+        else:
+            stdscr.addstr(y, x, "Avg. manhattan: {}".format("..."))
 
     curses.start_color()
 
@@ -541,6 +557,8 @@ def draw(stdscr, robot, T, TT, O, t):
     pos_statusbar_y = grid_start_y + tile_height*NUM_ROWS + \
         pos_statusbar_offset_y
     pos_statusbar_x = tile_border
+
+    pos_info_tracking_y = pos_statusbar_y + 2
 
     colors = {
         "BG_DEFAULT": (curses.COLOR_BLACK, curses.COLOR_WHITE),
@@ -614,15 +632,8 @@ def draw(stdscr, robot, T, TT, O, t):
 
             tilefill(*current_max, colors["BG_RED"])
 
-#            stdscr.addstr(74, 5, "Iteration: {}".format(iterations_tracking))
-#            dist_manhattan = manhattan_get()
-#            sum_manhattan += dist_manhattan
-#            stdscr.addstr(75, 5, " "*128)
-#            stdscr.addstr(75, 5, "Manhattan dist: {}".format(dist_manhattan))
-#            if (sum_manhattan and iterations_tracking):
-#                manhattan_avg = sum_manhattan / iterations_tracking
-#                stdscr.addstr(76, 5, "Avg. manhattan: {}".format(manhattan_avg))
-#
+            info_trancking()
+
         infobar()
         fill_grid()
         stdscr.refresh()
@@ -649,8 +660,8 @@ def draw(stdscr, robot, T, TT, O, t):
                             max_x, max_y = [x,y]
 
                 current_max = (max_x, max_y)
-                stdscr.addstr(70, 5, " "*128)
-                stdscr.addstr(71, 5, "{}".format(current_max))
+#                stdscr.addstr(70, 5, " "*128)
+#                stdscr.addstr(71, 5, "{}".format(current_max))
                 iterations_tracking += 1
             elif mode == 'probability headings':
                 cycle_headings()
