@@ -275,8 +275,13 @@ def check_probabilities_heading(robot):
     print(fmt.format((count["Keep"]/total)*100))
     print("")
 
+def normalize(l):
+    sum_l = sum(l)
+    return [v/sum_l for v in l]
+
 def predict(t, T):
-    return [sum([ft*fT for (ft,fT) in zip(t,T[i])]) for i in range(NUM_STATES)]
+    return normalize([sum([ft*fT for (ft,fT) in zip(t,T[i])]) for i in
+                      range(NUM_STATES)])
 
 def update(t, O, reading):
     if reading == SENSOR_NOTHING:
@@ -284,9 +289,9 @@ def update(t, O, reading):
         obs_diag = O.O[-1]
     else:
         obs_diag = O.O[index(*reading,N)]
-    return [t*O for (t,O) in zip(t,obs_diag)]
+    return normalize([t*O for (t,O) in zip(t,obs_diag)])
 
-def main(stdscr):
+def main(stdscr=None):
 
     robot = Robot(ROBOT_START_X, ROBOT_START_Y, ROBOT_START_HEADING)
 
@@ -298,18 +303,19 @@ def main(stdscr):
 
     t = [1.0/NUM_STATES] * NUM_STATES
 
-#    print(t)
-#    t = predict(t,T)
-#    print("")
-#    print(t)
-#    print("")
-#    reading = robot.read_sensor()
-#    t = update(t,O,reading)
-#    print(t)
-#    print("")
-#    robot.move()
+    print(t)
+    t = predict(t,T)
+    print("")
+    print(t)
+    print("")
+    reading = robot.read_sensor()
+    t = update(t,O,reading)
+    print(t)
+    print("")
+    robot.move()
 
-    draw(stdscr, robot, T, O, t)
+    if (stdscr):
+        draw(stdscr, robot, T, O, t)
 
 def draw(stdscr, robot, T, O, t):
 
@@ -406,6 +412,7 @@ def draw(stdscr, robot, T, O, t):
                       curses.A_STANDOUT)
 
     current_sensor = SENSOR_NOTHING
+
     current_cycle = (0,0,N)
     def fill_grid():
 
@@ -546,7 +553,9 @@ def draw(stdscr, robot, T, O, t):
         elif key == KEY_NEXT:
             if mode == 'tracking':
                 robot.move()
+                t = predict(t, T)
                 current_sensor = robot.read_sensor()
+                t = update(t, O, current_sensor)
             elif mode == 'probability headings':
                 cycle_headings()
 
@@ -554,5 +563,6 @@ if __name__ == "__main__":
     import curses
     from curses import wrapper
     wrapper(main)
+#    main()
 
 
