@@ -518,8 +518,15 @@ def draw(stdscr, robot, T, TT, O, t):
 
     center = [int(v) for v in [curses.LINES/2, curses.COLS/2]]
     tile_border = 10
-    tile_width = int((curses.COLS-2*tile_border)/NUM_COLS)
-    tile_height = int(tile_width*0.50)
+    ratio = curses.COLS / curses.LINES
+    if (curses.COLS*2 < curses.LINES):
+        tile_side = (curses.COLS-2*tile_border)/NUM_COLS
+    else:
+        tile_side = (curses.LINES-2*tile_border)/NUM_ROWS
+    tile_side = int(tile_side)
+
+    tile_height = tile_side
+    tile_width = tile_side*2
 
     grid_start_x = int(center[1]-(NUM_COLS/2)*tile_width)
     grid_end_x = grid_start_x+tile_width*NUM_COLS
@@ -539,6 +546,9 @@ def draw(stdscr, robot, T, TT, O, t):
         "BG_DEFAULT": (curses.COLOR_BLACK, curses.COLOR_WHITE),
         "BG_RED": (curses.COLOR_BLACK, curses.COLOR_RED),
         "BG_GREEN": (curses.COLOR_BLACK, curses.COLOR_GREEN),
+        "BG_YELLOW": (curses.COLOR_BLACK, curses.COLOR_YELLOW),
+        "BG_MAGENTA": (curses.COLOR_BLACK, curses.COLOR_MAGENTA),
+        "BG_BLUE": (curses.COLOR_BLACK, curses.COLOR_BLUE),
         "COLOR_TRUE": (curses.COLOR_BLACK, curses.COLOR_BLACK),
         "COLOR_SENSOR": (curses.COLOR_CYAN, curses.COLOR_CYAN),
         "BG_CYAN": (curses.COLOR_BLACK, curses.COLOR_CYAN),
@@ -591,20 +601,28 @@ def draw(stdscr, robot, T, TT, O, t):
 
         mode = mode_list[current_mode]
         if mode == 'tracking':
-            tilefill(*current_max, colors["BG_RED"])
 
             for x in range(NUM_COLS):
                 for y in range(NUM_ROWS):
-                    prob = prob_sum(x,y)
+                    prob = round(prob_sum(x,y), 3)
+                    if prob > 0.2:
+                        tilefill(x,y, colors["BG_MAGENTA"])
+                    elif prob > 0.1:
+                        tilefill(x,y, colors["BG_BLUE"])
+                    elif prob > 0.0:
+                        tilefill(x,y, colors["BG_YELLOW"])
 
-            stdscr.addstr(74, 5, "Iteration: {}".format(iterations_tracking))
-            dist_manhattan = manhattan_get()
-            sum_manhattan += dist_manhattan
-            stdscr.addstr(75, 5, "Manhattan dist: {}".format(dist_manhattan))
-            if (sum_manhattan and iterations_tracking):
-                manhattan_avg = sum_manhattan / iterations_tracking
-                stdscr.addstr(76, 5, "Avg. manhattan: {}".format(manhattan_avg))
+            tilefill(*current_max, colors["BG_RED"])
 
+#            stdscr.addstr(74, 5, "Iteration: {}".format(iterations_tracking))
+#            dist_manhattan = manhattan_get()
+#            sum_manhattan += dist_manhattan
+#            stdscr.addstr(75, 5, " "*128)
+#            stdscr.addstr(75, 5, "Manhattan dist: {}".format(dist_manhattan))
+#            if (sum_manhattan and iterations_tracking):
+#                manhattan_avg = sum_manhattan / iterations_tracking
+#                stdscr.addstr(76, 5, "Avg. manhattan: {}".format(manhattan_avg))
+#
         infobar()
         fill_grid()
         stdscr.refresh()
