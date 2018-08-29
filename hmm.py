@@ -180,11 +180,19 @@ def index(x,y,h):
     nh = NUM_HEADINGS
     return y*NUM_COLS*nh + x*nh + h
 
+def coords(index):
+    nh = NUM_HEADINGS
+    y = int(index/NUM_COLS/nh)
+    x = int((index - y*NUM_COLS*nh)/nh)
+    return (x,y,N)
+
 class MatT():
     def __init__(self):
-
-        self.T = [[0.0]*NUM_STATES for _ in range(NUM_STATES)]
+        self.T = self.initT()
         self.set_values()
+
+    def initT(self):
+        return [[0.0]*NUM_STATES for _ in range(NUM_STATES)]
 
     def getT(self, x, y, heading):
         return self.T[index(x, y, heading)]
@@ -205,6 +213,13 @@ class MatT():
                     for oth in others:
                         prob_oth = total_probability/len(others)
                         current_row[index(*oth)] = prob_oth
+
+    def transpose(self):
+        tempT = self.initT()
+        for y in range(NUM_STATES):
+            for x in range(NUM_STATES):
+                tempT[y][x] = self.T[x][y]
+        self.T = tempT
 
 class MatO():
     def __init__(self):
@@ -280,8 +295,8 @@ def normalize(l):
     return [v/sum_l for v in l]
 
 def predict(t, T):
-    return normalize([sum([ft*fT for (ft,fT) in zip(t,T[i])]) for i in
-                      range(NUM_STATES)])
+    return [sum([ft*fT for (ft,fT) in zip(t,T[i])]) for i in
+                      range(NUM_STATES)]
 
 def update(t, O, reading):
     if reading == SENSOR_NOTHING:
@@ -289,7 +304,7 @@ def update(t, O, reading):
         obs_diag = O.O[-1]
     else:
         obs_diag = O.O[index(*reading,N)]
-    return normalize([t*O for (t,O) in zip(t,obs_diag)])
+    return [t*O for (t,O) in zip(t,obs_diag)]
 
 def main(stdscr=None):
 
@@ -299,6 +314,8 @@ def main(stdscr=None):
     #check_probabilities_heading(robot)
 
     T = MatT()
+    TT = MatT()
+    TT.transpose()
     O = MatO()
 
     t = [1.0/NUM_STATES] * NUM_STATES
@@ -315,9 +332,9 @@ def main(stdscr=None):
     robot.move()
 
     if (stdscr):
-        draw(stdscr, robot, T, O, t)
+        draw(stdscr, robot, T, TT, O, t)
 
-def draw(stdscr, robot, T, O, t):
+def draw(stdscr, robot, T, TT, O, t):
 
     def between(start, stop, increment=1):
         return range(start, start+stop, increment)
@@ -428,7 +445,7 @@ def draw(stdscr, robot, T, O, t):
             if current_sensor != SENSOR_NOTHING:
                 tilecorner(*current_sensor, colors["COLOR_SENSOR"])
             mat = t
-            draw_all = False
+#            draw_all = False
         elif mode == 'probability headings':
             mat = T[index(*current_cycle)]
             x,y,h = current_cycle
@@ -438,9 +455,10 @@ def draw(stdscr, robot, T, O, t):
             for y in range(NUM_ROWS):
                 for x in range(NUM_COLS):
                     for h in HEADINGS:
-                        tilestr(x, y, h, "{:.3f}".format(mat[index(x,y,h)]))
-                        if not draw_all:
-                            break
+                        if draw_all:
+                            tilestr(x, y, h, "{:.3f}".format(mat[index(x,y,h)]))
+                        else:
+                            tilestr(x, y, N, "{:.3f}".format(mat[index(x,y,N)]))
 
     current_mode = 0
 
@@ -538,10 +556,12 @@ def draw(stdscr, robot, T, O, t):
     }
 
     mode_list = list(keys['modes'].keys())
+    current_max = (0,0)
 
     key = None
     while key != KEY_QUIT:
         draw_grid()
+        tilefill(*current_max, colors["BG_RED"])
         display_mode()
         infobar()
         fill_grid()
@@ -553,9 +573,17 @@ def draw(stdscr, robot, T, O, t):
         elif key == KEY_NEXT:
             if mode == 'tracking':
                 robot.move()
-                t = predict(t, T)
+                t = predict(t, TT)
                 current_sensor = robot.read_sensor()
                 t = update(t, O, current_sensor)
+                t = normalize(t)
+                max_t = max(t)
+                i_max = t.index(max_t)
+                maxx, maxy, _ = coords(i_max)
+                current_max = (maxx, maxy)
+                stdscr.addstr(70, 5, " "*128)
+                stdscr.addstr(70, 5, "{}".format(i_max))
+                stdscr.addstr(71, 5, "{}".format(max_t))
             elif mode == 'probability headings':
                 cycle_headings()
 
