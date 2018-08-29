@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import random
+
 NCS = NUM_COLS = 8
 NRS = NUM_ROWS = 8
 
@@ -18,14 +20,15 @@ PN = POS_NEXT = {
     S: ( 0,  1),
     W: (-1,  0),
 }
+
+# Helper methods.
 pos_next = lambda x,y,h: (x+POS_NEXT[h][0], y+POS_NEXT[h][1], h)
 pos_valid = lambda tx,ty,h=N: all([tx>=0, tx<NCS, ty>=0, ty<NRS])
+pos_all = lambda x,y: [(x+tx, y+ty, h) for (h,(tx, ty)) in PN.items()]
+pos_all_sane = lambda x,y: [p for p in pos_all(x,y) if pos_valid(*p)]
+coords_to_index = lambda x,y,h: y*NUM_COLS*NUM_HEADINGS + x*NUM_HEADINGS + h
+roll_die = lambda: random.uniform(0.0, 1.0)
 
-def pos_all(x,y):
-    return [(x+tx, y+ty, h) for (h,(tx, ty)) in PN.items()]
-
-def pos_all_sane(x,y):
-    return [p for p in pos_all(x,y) if pos_valid(*p)]
 
 def head_and_others(x,y,h):
     sane = pos_all_sane(x,y)
@@ -40,9 +43,6 @@ def index_to_coords(i):
     y = int(i/y_diff)
     x = int((i-y*y_diff) / x_diff)
     return (x,y,i%NUM_HEADINGS)
-
-def coords_to_index(x,y,h):
-    return y*NUM_COLS*NUM_HEADINGS + x*NUM_HEADINGS + h
 
 def get_circles(x,y,h=None):
     L1 = []; L2 = []
