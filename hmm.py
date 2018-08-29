@@ -6,7 +6,7 @@ from collections import Counter
 NUM_ROWS = 8
 NUM_COLS = 8
 
-N, W, S, E = HEADINGS = [0, 1, 2, 3]
+N, E, S, W = HEADINGS = [0, 1, 2, 3]
 HEADING_TO_CHAR = {
     N: 'N',
     W: 'W',
@@ -298,20 +298,20 @@ def main(stdscr):
 
     t = [1.0/NUM_STATES] * NUM_STATES
 
-    print(t)
-    t = predict(t,T)
-    print("")
-    print(t)
-    print("")
-    reading = robot.read_sensor()
-    t = update(t,O,reading)
-    print(t)
-    print("")
+#    print(t)
+#    t = predict(t,T)
+#    print("")
+#    print(t)
+#    print("")
+#    reading = robot.read_sensor()
+#    t = update(t,O,reading)
+#    print(t)
+#    print("")
 #    robot.move()
 
-    draw(stdscr, robot, T, O)
+    draw(stdscr, robot, T, O, t)
 
-def draw(stdscr, robot, T, O):
+def draw(stdscr, robot, T, O, t):
 
     def between(start, stop, increment=1):
         return range(start, start+stop, increment)
@@ -358,12 +358,13 @@ def draw(stdscr, robot, T, O):
         x_offset, y_offset = offsets[heading]
         rx = grid_start_x + x*tile_width + x_offset
         ry = grid_start_y + y*tile_height + y_offset
-        stdscr.addstr(ry, rx, string, color_tiles[x][y])
+        stdscr.addstr(ry, rx, string, color_tiles[x][y][heading])
 
     def tilefill(x,y,color):
         rx = grid_start_x + x*tile_width + 1
         ry = grid_start_y + y*tile_height + 1
-        color_tiles[x][y] = color
+        for h in HEADINGS:
+            color_tiles[x][y][h] = color
         for x in between(rx, tile_width-1):
             for y in between(ry, tile_height-1):
                 stdscr.addstr(y,x,' ',color)
@@ -405,15 +406,24 @@ def draw(stdscr, robot, T, O):
                       curses.A_STANDOUT)
 
     current_sensor = SENSOR_NOTHING
+    current_cycle = (0,0,N)
     def fill_grid():
+
         mat = None
         mode = mode_list[current_mode]
+
         if mode == 'probability nothing':
             mat = O[-1]
         elif mode == 'tracking':
             tilecenter(*robot.location(), colors["COLOR_TRUE"])
             if current_sensor != SENSOR_NOTHING:
                 tilecorner(*current_sensor, colors["COLOR_SENSOR"])
+            mat = t
+        elif mode == 'probability headings':
+            mat = T[index(*current_cycle)]
+            x,y,h = current_cycle
+            color_tiles[x][y][h] = colors["BG_CYAN"]
+
         if mat:
             for y in range(NUM_ROWS):
                 for x in range(NUM_COLS):
@@ -429,6 +439,21 @@ def draw(stdscr, robot, T, O):
         else:
             current_mode += 1
         return mode_list[current_mode]
+
+    def cycle_headings():
+        nonlocal current_cycle
+        x,y,h = current_cycle
+        if h == HEADINGS[-1]:
+            h = HEADINGS[0]
+            x += 1
+        else:
+            h += 1
+        if x >= NUM_COLS:
+            x = 0
+            y += 1
+        if y >= NUM_ROWS:
+            y = 0
+        current_cycle = (x,y,h)
 
     curses.start_color()
 
@@ -463,6 +488,7 @@ def draw(stdscr, robot, T, O):
         "BG_GREEN": (curses.COLOR_BLACK, curses.COLOR_GREEN),
         "COLOR_TRUE": (curses.COLOR_BLACK, curses.COLOR_BLACK),
         "COLOR_SENSOR": (curses.COLOR_CYAN, curses.COLOR_CYAN),
+        "BG_CYAN": (curses.COLOR_BLACK, curses.COLOR_CYAN),
         "COLOR_MAX": (curses.COLOR_BLUE, curses.COLOR_BLUE),
     }
 
@@ -470,7 +496,8 @@ def draw(stdscr, robot, T, O):
         curses.init_pair(i, *pair)
         colors[name] = curses.color_pair(i)
 
-    color_tiles = [[colors["BG_DEFAULT"]] * NUM_COLS for _ in range(NUM_ROWS)]
+    color_tiles = [[[colors["BG_DEFAULT"] for _ in range(NUM_HEADINGS)] for _
+                    in  range(NUM_COLS)] for _ in range(NUM_ROWS)]
     stdscr.bkgd(' ', colors["BG_DEFAULT"])
 
     KEY_QUIT = 'q'
@@ -515,6 +542,8 @@ def draw(stdscr, robot, T, O):
             if mode == 'tracking':
                 robot.move()
                 current_sensor = robot.read_sensor()
+            elif mode == 'probability headings':
+                cycle_headings()
 
 if __name__ == "__main__":
     import curses
