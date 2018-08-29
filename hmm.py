@@ -373,9 +373,16 @@ def draw(stdscr, robot, T, O):
         y_center = int((tile_height)/2)
         rx = grid_start_x + x*tile_width + x_center
         ry = grid_start_y + y*tile_height + y_center
-        for x in range(rx-1, rx+2):
-            for y in range(ry, ry+2):
+        for y in range(ry, ry+2):
+            for x in range(rx-1, rx+2):
                 stdscr.addstr(y, x, ' ', color)
+
+    def tilecorner(x,y,color):
+        rx = grid_start_x + x*tile_width + 1
+        ry = grid_start_y + (y+1)*tile_height - 1
+        stdscr.addstr(ry, rx, ' ', color)
+        stdscr.addstr(ry, rx+1, ' ', color)
+
 
     def infobar():
         current_x = pos_statusbar_x
@@ -403,7 +410,10 @@ def draw(stdscr, robot, T, O):
         if mode == 'probability nothing':
             mat = O[-1]
         elif mode == 'tracking':
+            reading = robot.read_sensor()
             tilecenter(*robot.location(), colors["COLOR_TRUE"])
+            if reading != SENSOR_NOTHING:
+                tilecorner(*reading, colors["COLOR_SENSOR"])
         if mat:
             for y in range(NUM_ROWS):
                 for x in range(NUM_COLS):
@@ -452,6 +462,8 @@ def draw(stdscr, robot, T, O):
         "BG_RED": (curses.COLOR_BLACK, curses.COLOR_RED),
         "BG_GREEN": (curses.COLOR_BLACK, curses.COLOR_GREEN),
         "COLOR_TRUE": (curses.COLOR_BLACK, curses.COLOR_BLACK),
+        "COLOR_SENSOR": (curses.COLOR_CYAN, curses.COLOR_CYAN),
+        "COLOR_MAX": (curses.COLOR_BLUE, curses.COLOR_BLUE),
     }
 
     for i, (name, pair) in enumerate(colors.items(), start=1):
