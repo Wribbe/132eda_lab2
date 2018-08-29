@@ -21,13 +21,23 @@ PN = POS_NEXT = {
     W: (-1,  0),
 }
 
+SENSOR_NONE = (None, None)
+
 # Helper methods.
 pos_next = lambda x,y,h: (x+POS_NEXT[h][0], y+POS_NEXT[h][1], h)
 pos_valid = lambda tx,ty,h=N: all([tx>=0, tx<NCS, ty>=0, ty<NRS])
 pos_all = lambda x,y: [(x+tx, y+ty, h) for (h,(tx, ty)) in PN.items()]
 pos_all_sane = lambda x,y: [p for p in pos_all(x,y) if pos_valid(*p)]
 coords_to_index = lambda x,y,h: y*NUM_COLS*NUM_HEADINGS + x*NUM_HEADINGS + h
-roll_die = lambda: random.uniform(0.0, 1.0)
+
+# Robot related helper methods.
+roll = lambda: random.uniform(0.0, 1.0)
+rh = lambda h: random.choice([v for v in HEADINGS if v != h])
+roll_heading = lambda x,y,h: (x,y,rh(h)) if roll()<=P_KEEP_HEADING else (x,y,h)
+
+# Probability helper methods
+prob_tot_L1 = lambda l: len(l)/NH * P_L1
+prob_tot_L2 = lambda l: len(l)/NH * P_L2
 
 
 def head_and_others(x,y,h):
@@ -56,6 +66,26 @@ def get_circles(x,y,h=None):
                     L2 += [(xx,yy,h) for h in HEADINGS]
     return (L1, L2)
 
+def move(robot):
+    next_p = pos_next(*robot)
+    while not pos_valid(*next_p):
+        robot = roll_heading(*robot)
+        next_p = pos_next(*robot)
+    return next_p
+
+def poll_sensor(robot):
+    L1, L2 = get_circles(*robot)
+    probs = [
+        (P_SENSOR_TRUE, robot),
+        (prob_tot_L1(L1), random.choice(L1)),
+        (prob_tot_L2(L2), random.choice(L2)),
+    ]
+    r = roll()
+    for i, (prob, ret) in enumerate(probs):
+        if r <= sum([p for (p,_) in probs[0:i]]):
+            return ret[:2]
+    return SENSOR_NONE
+
 def main():
 
     # Setup T-matrix.
@@ -77,12 +107,16 @@ def main():
             matrix[coords_to_index(*pos)] = P_L1
         for pos in L2:
             matrix[coords_to_index(*pos)] = P_L2
-        mat_nothing.append(1.0-P_SENSOR_TRUE-len(L1)*P_L1/NH-len(L2)*P_L2/NH)
+        mat_nothing.append(1.0-P_SENSOR_TRUE-prob_tot_L1(L1)-prob_tot_L2(L2))
     O.append(mat_nothing)
 
     t = [0.0]*NUM_STATES
 
-    ROBOT = (0,0,N)
+    robot = (0,0,N)
+    robot = move(robot)
+    print(robot)
+    print(mat_nothing)
+    print(poll_sensor(robot))
 
 if __name__ == "__main__":
     main()
