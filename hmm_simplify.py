@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import random
+import viewer
+
 from random import choice as randch
 
 NCS = NUM_COLS = 8
@@ -117,11 +119,14 @@ def main():
 
     t = [1.0/NUM_STATES]*NUM_STATES
 
+    # Init robot and main loop.
     robot = (randch(range(NCS)), randch(range(NRS)), rh(-1))
-    robot = move(robot)
-    t, poll = forward(t, O, TT, robot)
-    print(t)
-    print(poll)
+    inp = None
+    while inp != 'q':
+        t, poll = forward(t, O, TT, robot)
+        robot = move(robot)
+        viewer.draw(t, O, TT, robot, poll)
+        inp = input("Enter option and press <ENTER>: ")
 
 if __name__ == "__main__":
     main()
