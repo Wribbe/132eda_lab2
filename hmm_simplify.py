@@ -88,8 +88,8 @@ def poll_sensor(robot):
 def forward(t, O, T, robot):
     t = [sum([v1*v2 for v1,v2 in zip(t,vT)]) for vT in T] # Prediction.
     poll = poll_sensor(robot)
-    O = O[-1] if poll == SENSOR_NONE else O[coords_to_index(*poll)]
-    t = [vt*vO for vt,vO in zip (t,O)] # Update.
+    o = O[-1] if poll == SENSOR_NONE else O[coords_to_index(*poll)]
+    t = [vt*vo for vt,vo in zip (t,o)] # Update.
     return ([v/sum(t) for v in t], poll) # Normalize.
 
 def main():
