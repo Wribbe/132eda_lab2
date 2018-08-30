@@ -125,7 +125,7 @@ def main():
     while inp != 'q':
         t, poll = forward(t, O, TT, robot)
         robot = move(robot)
-        viewer.draw(t, O, TT, robot, poll)
+        viewer.draw(t, O, TT, robot, poll, NCS, NRS)
         inp = input("Enter option and press <ENTER>: ")
 
 if __name__ == "__main__":
