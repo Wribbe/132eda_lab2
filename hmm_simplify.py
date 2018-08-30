@@ -101,15 +101,14 @@ def main():
             mT[coords_to_index(*pos)] = mTT[tcoords_to_index(*pos)] = prob
 
     # Setup O-matrix.
-    mat_nothing = []
+    O.append([])
     for im, matrix in enumerate(O):
         L1, L2 = get_circles(*index_to_coords(im))
         for pos in L1:
             matrix[coords_to_index(*pos)] = P_L1
         for pos in L2:
             matrix[coords_to_index(*pos)] = P_L2
-        mat_nothing.append(1.0-P_SENSOR_TRUE-p_tot_L1(L1)-p_tot_L2(L2))
-    O.append(mat_nothing)
+        O[-1].append(1.0-P_SENSOR_TRUE-p_tot_L1(L1)-p_tot_L2(L2))
 
     t = [0.0]*NUM_STATES
 
