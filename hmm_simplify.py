@@ -30,12 +30,12 @@ pos_valid = lambda tx,ty,h=N: all([tx>=0, tx<NCS, ty>=0, ty<NRS])
 pos_all = lambda x,y: [(x+tx, y+ty, h) for (h,(tx, ty)) in PN.items()]
 pos_all_sane = lambda x,y: [p for p in pos_all(x,y) if pos_valid(*p)]
 coords_to_index = lambda x,y,h: y*NUM_COLS*NUM_HEADINGS + x*NUM_HEADINGS + h
-tcoords_to_index = lambda x,y,h: coords_to_index(y,x,h) # Transposition.
+tcoords_to_index = lambda x,y,h: coords_to_index(y,x,h) # Transpose.
 
 # Robot related helper methods.
 roll = lambda: random.uniform(0.0, 1.0)
 rh = lambda h: randch([v for v in HEADINGS if v != h])
-roll_heading = lambda x,y,h: (x,y,rh(h)) if roll()<=P_KEEP_HEADING else (x,y,h)
+roll_heading = lambda x,y,h: (x,y,h) if roll()<=P_KEEP_HEADING else (x,y,rh(h))
 
 # Probability helper methods
 p_tot_L1 = lambda l: len(l)/NH * P_L1
@@ -57,8 +57,8 @@ def index_to_coords(i):
 
 def get_circles(x,y,h=None):
     L1 = []; L2 = []
-    for xx in range(x-2, x+3):
-        for yy in range(y-2, y+3):
+    for yy in range(y-2, y+3):
+        for xx in range(x-2, x+3):
             diffs = [abs(xx-x), abs(yy-y)]
             if pos_valid(xx,yy) and any(diffs):
                 if all([d <= 1 for d in diffs]):
@@ -68,10 +68,11 @@ def get_circles(x,y,h=None):
     return (L1, L2)
 
 def move(robot):
+    robot = roll_heading(*robot)
     next_p = pos_next(*robot)
     while not pos_valid(*next_p):
-        robot = roll_heading(*robot)
         next_p = pos_next(*robot)
+        robot = roll_heading(*robot)
     return next_p
 
 def poll_sensor(robot):
@@ -82,7 +83,7 @@ def poll_sensor(robot):
         (p_tot_L2(L2), random.choice(L2)),
     ]
     r = roll()
-    for i, (prob, ret) in enumerate(probs):
+    for i, (prob, ret) in enumerate(probs, start=1):
         if r <= sum([p for (p,_) in probs[0:i]]):
             return ret
     return SENSOR_NONE
@@ -92,7 +93,8 @@ def forward(t, O, T, robot):
     poll = poll_sensor(robot)
     o = O[-1] if poll == SENSOR_NONE else O[coords_to_index(*poll)]
     t = [vt*vo for vt,vo in zip (t,o)] # Update.
-    return ([v/sum(t) for v in t], poll) # Normalize.
+    t = [v/sum(t) for v in t] # Normalize.
+    return (t, poll)
 
 def main():
 
@@ -108,25 +110,28 @@ def main():
             mT[coords_to_index(*pos)] = mTT[tcoords_to_index(*pos)] = prob
 
     # Setup O-matrix.
-    O.append([])
-    for im, matrix in enumerate(O):
+    mat_nothing = []
+    for im, diag in enumerate(O):
         L1, L2 = get_circles(*index_to_coords(im))
         for pos in L1:
-            matrix[coords_to_index(*pos)] = P_L1
+            diag[coords_to_index(*pos)] = P_L1
         for pos in L2:
-            matrix[coords_to_index(*pos)] = P_L2
-        O[-1].append(1.0-P_SENSOR_TRUE-p_tot_L1(L1)-p_tot_L2(L2))
+            diag[coords_to_index(*pos)] = P_L2
+        diag[im] = P_SENSOR_TRUE
+        mat_nothing.append(1.0-P_SENSOR_TRUE-p_tot_L1(L1)-p_tot_L2(L2))
+    O.append(mat_nothing)
 
     t = [1.0/NUM_STATES]*NUM_STATES
 
     # Init robot and main loop.
     robot = (randch(range(NCS)), randch(range(NRS)), rh(-1))
     inp = None
+
     while inp != 'q':
-        t, poll = forward(t, O, TT, robot)
-        robot = move(robot)
-        viewer.draw(t, O, TT, robot, poll, NCS, NRS)
+        t, poll = forward(t, O, T, robot)
+        viewer.draw(t, O, T, robot, poll, NCS, NRS, inp)
         inp = input("Enter option and press <ENTER>: ")
+        robot = move(robot)
 
 if __name__ == "__main__":
     main()
