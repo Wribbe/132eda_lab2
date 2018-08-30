@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
 import random
+from random import choice as randch
 
 NCS = NUM_COLS = 8
 NRS = NUM_ROWS = 8
 
 N,E,S,W = HEADINGS = range(4)
 NH = NUM_HEADINGS = len(HEADINGS)
+NUM_STATES = NUM_COLS * NUM_ROWS * NUM_HEADINGS
 
 P_KEEP_HEADING, P_SENSOR_TRUE, P_L1, P_L2 = [0.7, 0.1, 0.05, 0.025]
-
-NUM_STATES = NUM_COLS * NUM_ROWS * NUM_HEADINGS
+SENSOR_NONE = (None, None)
 
 T, TT, O = [[[0]*NUM_STATES for _ in range(NUM_STATES)] for _ in range(3)]
 
@@ -21,9 +22,7 @@ PN = POS_NEXT = {
     W: (-1,  0),
 }
 
-SENSOR_NONE = (None, None)
-
-# Helper methods.
+# Position / coordinates / index - helper methods.
 pos_next = lambda x,y,h: (x+POS_NEXT[h][0], y+POS_NEXT[h][1], h)
 pos_valid = lambda tx,ty,h=N: all([tx>=0, tx<NCS, ty>=0, ty<NRS])
 pos_all = lambda x,y: [(x+tx, y+ty, h) for (h,(tx, ty)) in PN.items()]
@@ -33,7 +32,7 @@ tcoords_to_index = lambda x,y,h: coords_to_index(y,x,h) # Transposition.
 
 # Robot related helper methods.
 roll = lambda: random.uniform(0.0, 1.0)
-rh = lambda h: random.choice([v for v in HEADINGS if v != h])
+rh = lambda h: randch([v for v in HEADINGS if v != h])
 roll_heading = lambda x,y,h: (x,y,rh(h)) if roll()<=P_KEEP_HEADING else (x,y,h)
 
 # Probability helper methods
@@ -118,12 +117,11 @@ def main():
 
     t = [1.0/NUM_STATES]*NUM_STATES
 
-    robot = (0,0,N)
+    robot = (randch(range(NCS)), randch(range(NRS)), rh(-1))
     robot = move(robot)
     t, poll = forward(t, O, TT, robot)
     print(t)
     print(poll)
-
 
 if __name__ == "__main__":
     main()
