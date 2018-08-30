@@ -12,7 +12,7 @@ P_KEEP_HEADING, P_SENSOR_TRUE, P_L1, P_L2 = [0.7, 0.1, 0.05, 0.025]
 
 NUM_STATES = NUM_COLS * NUM_ROWS * NUM_HEADINGS
 
-T, O = [[[0]*NUM_STATES for _ in range(NUM_STATES)] for _ in range(2)]
+T, TT, O = [[[0]*NUM_STATES for _ in range(NUM_STATES)] for _ in range(3)]
 
 PN = POS_NEXT = {
     N: ( 0, -1),
@@ -29,6 +29,7 @@ pos_valid = lambda tx,ty,h=N: all([tx>=0, tx<NCS, ty>=0, ty<NRS])
 pos_all = lambda x,y: [(x+tx, y+ty, h) for (h,(tx, ty)) in PN.items()]
 pos_all_sane = lambda x,y: [p for p in pos_all(x,y) if pos_valid(*p)]
 coords_to_index = lambda x,y,h: y*NUM_COLS*NUM_HEADINGS + x*NUM_HEADINGS + h
+tcoords_to_index = lambda x,y,h: coords_to_index(y,x,h) # Transposition.
 
 # Robot related helper methods.
 roll = lambda: random.uniform(0.0, 1.0)
@@ -36,8 +37,8 @@ rh = lambda h: random.choice([v for v in HEADINGS if v != h])
 roll_heading = lambda x,y,h: (x,y,rh(h)) if roll()<=P_KEEP_HEADING else (x,y,h)
 
 # Probability helper methods
-prob_tot_L1 = lambda l: len(l)/NH * P_L1
-prob_tot_L2 = lambda l: len(l)/NH * P_L2
+p_tot_L1 = lambda l: len(l)/NH * P_L1
+p_tot_L2 = lambda l: len(l)/NH * P_L2
 
 
 def head_and_others(x,y,h):
@@ -77,8 +78,8 @@ def poll_sensor(robot):
     L1, L2 = get_circles(*robot)
     probs = [
         (P_SENSOR_TRUE, robot),
-        (prob_tot_L1(L1), random.choice(L1)),
-        (prob_tot_L2(L2), random.choice(L2)),
+        (p_tot_L1(L1), random.choice(L1)),
+        (p_tot_L2(L2), random.choice(L2)),
     ]
     r = roll()
     for i, (prob, ret) in enumerate(probs):
@@ -88,16 +89,16 @@ def poll_sensor(robot):
 
 def main():
 
-    # Setup T-matrix.
-    for im, matrix in enumerate(T):
+    # Setup T-/TT-matrix.
+    for im, (mT, mTT) in enumerate(zip(T,TT)):
         head, others = head_and_others(*index_to_coords(im))
         prob = 1.0
         if head:
             prob -= P_KEEP_HEADING
-            matrix[coords_to_index(*head)] = P_KEEP_HEADING
+            mT[coords_to_index(*head)] = mTT[tcoords_to_index(*head)] = 1-prob
         prob /= len(others)
         for pos in others:
-            matrix[coords_to_index(*pos)] = prob
+            mT[coords_to_index(*pos)] = mTT[tcoords_to_index(*pos)] = prob
 
     # Setup O-matrix.
     mat_nothing = []
@@ -107,16 +108,13 @@ def main():
             matrix[coords_to_index(*pos)] = P_L1
         for pos in L2:
             matrix[coords_to_index(*pos)] = P_L2
-        mat_nothing.append(1.0-P_SENSOR_TRUE-prob_tot_L1(L1)-prob_tot_L2(L2))
+        mat_nothing.append(1.0-P_SENSOR_TRUE-p_tot_L1(L1)-p_tot_L2(L2))
     O.append(mat_nothing)
 
     t = [0.0]*NUM_STATES
 
     robot = (0,0,N)
     robot = move(robot)
-    print(robot)
-    print(mat_nothing)
-    print(poll_sensor(robot))
 
 if __name__ == "__main__":
     main()
