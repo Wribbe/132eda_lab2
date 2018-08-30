@@ -40,7 +40,6 @@ roll_heading = lambda x,y,h: (x,y,rh(h)) if roll()<=P_KEEP_HEADING else (x,y,h)
 p_tot_L1 = lambda l: len(l)/NH * P_L1
 p_tot_L2 = lambda l: len(l)/NH * P_L2
 
-
 def head_and_others(x,y,h):
     sane = pos_all_sane(x,y)
     head = [(i,p) for i,p in enumerate(sane) if p == pos_next(x,y,h)]
@@ -84,8 +83,15 @@ def poll_sensor(robot):
     r = roll()
     for i, (prob, ret) in enumerate(probs):
         if r <= sum([p for (p,_) in probs[0:i]]):
-            return ret[:2]
+            return ret
     return SENSOR_NONE
+
+def forward(t, O, T, robot):
+    t = [sum([v1*v2 for v1,v2 in zip(t,vT)]) for vT in T] # Prediction.
+    poll = poll_sensor(robot)
+    O = O[-1] if poll == SENSOR_NONE else O[coords_to_index(*poll)]
+    t = [vt*vO for vt,vO in zip (t,O)] # Update.
+    return ([v/sum(t) for v in t], poll) # Normalize.
 
 def main():
 
@@ -110,10 +116,14 @@ def main():
             matrix[coords_to_index(*pos)] = P_L2
         O[-1].append(1.0-P_SENSOR_TRUE-p_tot_L1(L1)-p_tot_L2(L2))
 
-    t = [0.0]*NUM_STATES
+    t = [1.0/NUM_STATES]*NUM_STATES
 
     robot = (0,0,N)
     robot = move(robot)
+    t, poll = forward(t, O, TT, robot)
+    print(t)
+    print(poll)
+
 
 if __name__ == "__main__":
     main()
