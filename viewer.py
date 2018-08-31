@@ -12,13 +12,21 @@ MODES = ['tracking','headings','prob_nothing']
 MODE_TITLES = ['Tracking','Headings','Probability nothing']
 MODE_CURRENT = 0
 
+INFO_DEFAULT = \
+"""
+    [t]: Next mode, [q]: quit
+"""
+
 MODE_INFO = [
     """
     [Enter/No input]: Move robot.
+    Markers: SS - Sensor, R - Robot, ?? - Guess, H,M,L,0 = P[>0.3,>0.1,>0.000]
     """,
     """
+    [Enter/No input]: Cycle through headings.
     """,
     """
+    [Enter/No input]: Nothing.
     """,
 ]
 
@@ -31,6 +39,9 @@ heading_marker = 0
 
 grid_offset_x = 0
 grid_offset_y = 0
+
+iterations = 0
+sum_manhattan = 0
 
 def display_canvas():
     print('\n'.join([''.join(line) for line in canvas]))
@@ -174,6 +185,9 @@ def draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode):
         mat = t
         indexes = range(0,len(mat),NH)
         disp_value = sum_headings
+        if not inp: # Enter.
+            global iterations
+            iterations += 1
     else:
         if mode == 'headings':
             if not inp: # Enter.
@@ -198,5 +212,15 @@ def draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode):
     if mode == 'headings':
         mark_marker()
     display_canvas()
+    info_mode = MODE_INFO[MODE_CURRENT].strip()
+    print("{} {}".format(INFO_DEFAULT.strip('\n'),info_mode))
 
-    return input("Enter option and press <ENTER>: ")
+    if mode == 'tracking':
+        fmt = "    Iteration: {}, Manhattan distance: {}, avg. Manhattan {}"
+        manhattan = sum([abs(v1-v2) for v1,v2 in zip(guess,robot[2:])])
+        global sum_manhattan
+        sum_manhattan += manhattan
+        avg = sum_manhattan/iterations
+        print(fmt.format(iterations, manhattan, avg))
+
+    return input("\nEnter option and press <ENTER>: ")
