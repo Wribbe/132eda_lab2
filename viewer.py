@@ -8,6 +8,9 @@ TR = 'TR'
 BR = 'BR'
 NH = len(HEADINGS)
 
+MODES = ['tracking','headings','prob_nothing']
+MODE_CURRENT = 0
+
 canvas = []
 
 box_width = 15
@@ -107,7 +110,15 @@ def mark_guess(x,y):
     write_in_box(x,y, BR, '?')
     write_in_box(x,y, C, '??')
 
-def draw(t, O, T, robot, poll, NCS, NRS, inp, guess):
+def current_mode():
+    return MODES[MODE_CURRENT]
+
+def next_mode():
+    global MODE_CURRENT
+    MODE_CURRENT = (MODE_CURRENT+1)%len(MODES)
+    return MODES[MODE_CURRENT]
+
+def draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode):
 
     os.system("cls" if os.name == "nt" else "clear")
     grid(0,0, NCS, NRS)
@@ -117,16 +128,26 @@ def draw(t, O, T, robot, poll, NCS, NRS, inp, guess):
 
     sum_headings = lambda mat,i: sum(mat[i:i+NH])
 
-    indexes = range(0,len(mat),NH)
+    if mode == 'tracking':
+        mat = t
+        indexes = range(0,len(mat),NH)
+        disp_value = sum_headings
+    else:
+        mat = O[-1]
+        indexes = range(len(mat))
+        disp_value = lambda mat,i: mat[i]
+        print(mat)
 
     for i in indexes:
         x,y,h = index_to_coords(i)
-        heading_sum = sum_headings(mat, i)
-        write_in_box(x,y,h,"{:.3f}".format(heading_sum))
-        box_status(x,y,heading_sum)
+        value = disp_value(mat,i)
+        write_in_box(x,y,h,"{:.3f}".format(value))
+        box_status(x,y,value)
 
     clear_tiles(NCS, NRS)
     mark_poll(poll)
     mark_guess(*guess)
     mark_robot(robot)
     display_canvas()
+
+    return input("Enter option and press <ENTER>: ")

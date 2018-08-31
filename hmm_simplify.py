@@ -125,14 +125,17 @@ def main():
 
     # Init robot and main loop.
     robot = (randch(range(NCS)), randch(range(NRS)), rh(-1))
+
+    mode = viewer.current_mode()
     inp = None
 
     while inp != 'q':
         t, poll = forward(t, O, T, robot)
-        max_v, max_i = max([(sum(t[i:i+4]),i) for i in range(len(t))[0:len(t):4]])
+        _, max_i = max([(sum(t[i:i+4]),i) for i in range(len(t))[0:len(t):4]])
         guess = index_to_coords(max_i)[:2]
-        viewer.draw(t, O, T, robot, poll, NCS, NRS, inp, guess)
-        inp = input("Enter option and press <ENTER>: ")
+        inp = viewer.draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode)
+        if inp == 't':
+            mode = viewer.next_mode()
         robot = move(robot)
 
 if __name__ == "__main__":
