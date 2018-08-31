@@ -48,6 +48,12 @@ def canvas_coords(cx,cy):
     y = box_height*cy
     return (x,y)
 
+def clear_box(cx,cy):
+    x,y = [v+1 for v in canvas_coords(cx,cy)]
+    for yy in range(y,y+box_height-1):
+        for xx in range(x,x+box_width):
+            canvas[yy][xx] = ' '
+
 def write_in_box(cx,cy,pos,text):
     x,y = [v+1 for v  in canvas_coords(cx,cy)]
     middle_x = int((box_width/2)-(len(text)/2))
@@ -89,8 +95,7 @@ def box_status(x,y,value):
 def clear_tiles(xmax,ymax):
     for x in range(xmax):
         for y in range(ymax):
-            write_in_box(x,y, C, ' '*(box_width-2))
-            write_in_box(x,y, TR, ' ')
+            clear_box(x,y)
 
 def mark_poll(poll):
     if poll != SENSOR_NONE:
@@ -122,9 +127,7 @@ def draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode):
 
     os.system("cls" if os.name == "nt" else "clear")
     grid(0,0, NCS, NRS)
-    x, y, h = [0, 0, 0]
-
-    mat = t
+    clear_tiles(NCS, NRS)
 
     sum_headings = lambda mat,i: sum(mat[i:i+NH])
 
@@ -144,7 +147,6 @@ def draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode):
         write_in_box(x,y,h,"{:.3f}".format(value))
         box_status(x,y,value)
 
-    clear_tiles(NCS, NRS)
     mark_poll(poll)
     mark_guess(*guess)
     mark_robot(robot)
