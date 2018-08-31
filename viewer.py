@@ -217,7 +217,7 @@ def draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode):
 
     if mode == 'tracking':
         fmt = "    Iteration: {}, Manhattan distance: {}, avg. Manhattan {}"
-        manhattan = sum([abs(v1-v2) for v1,v2 in zip(guess,robot[2:])])
+        manhattan = sum([abs(v1-v2) for v1,v2 in zip(guess,robot[:2])])
         global sum_manhattan
         sum_manhattan += manhattan
         avg = sum_manhattan/iterations
