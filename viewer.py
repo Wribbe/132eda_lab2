@@ -16,6 +16,8 @@ canvas = []
 box_width = 15
 box_height = 7
 
+heading_marker = 0
+
 def display_canvas():
     print('\n'.join([''.join(line) for line in canvas]))
 
@@ -123,6 +125,20 @@ def next_mode():
     MODE_CURRENT = (MODE_CURRENT+1)%len(MODES)
     return MODES[MODE_CURRENT]
 
+def mark_marker():
+    markers = {
+        N: "A",
+        E: ">",
+        S: "V",
+        W: "<",
+    }
+    x,y,h = index_to_coords(heading_marker)
+    write_in_box(x,y,C,markers[h])
+
+def mark_advance(mat):
+    global heading_marker
+    heading_marker = (heading_marker+1)%len(mat)
+
 def draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode):
 
     os.system("cls" if os.name == "nt" else "clear")
@@ -136,20 +152,28 @@ def draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode):
         indexes = range(0,len(mat),NH)
         disp_value = sum_headings
     else:
-        mat = O[-1]
+        if mode == 'headings':
+            if not inp: # Enter.
+                mark_advance(T)
+            mat = T[heading_marker]
+        else:
+            mat = O[-1]
         indexes = range(len(mat))
         disp_value = lambda mat,i: mat[i]
-        print(mat)
 
     for i in indexes:
         x,y,h = index_to_coords(i)
         value = disp_value(mat,i)
         write_in_box(x,y,h,"{:.3f}".format(value))
-        box_status(x,y,value)
+        if mode == 'tracking':
+            box_status(x,y,value)
 
-    mark_poll(poll)
-    mark_guess(*guess)
-    mark_robot(robot)
+    if mode == 'tracking':
+        mark_poll(poll)
+        mark_guess(*guess)
+        mark_robot(robot)
+    if mode == 'headings':
+        mark_marker()
     display_canvas()
 
     return input("Enter option and press <ENTER>: ")

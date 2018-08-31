@@ -136,7 +136,8 @@ def main():
         inp = viewer.draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode)
         if inp == 't':
             mode = viewer.next_mode()
-        robot = move(robot)
+        if mode == 'tracking' and not inp:
+            robot = move(robot)
 
 if __name__ == "__main__":
     main()
