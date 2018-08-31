@@ -46,7 +46,21 @@
     Where $np1$ and $np2$ are the number of possible (inside the grid)
     positions one and two steps from the robots true location respectively.
     Additionally the assumptions that the robot always successfully moves one
-    tile and stays inside the grid are made.
+    tile and stays inside the grid are made. \\
+
+    \textbf{Encoding:} Since there are four possible directions; N, E, S, W
+    and X$\cdot$Y number of tiles there are X${\cdot}$Y${\cdot}4$ possible
+    states on the grid. These states will be represented as a list of numbers
+    in Python according to the following scheme.
+
+    \begin{center}
+      \texttt{grid = [0 1 2 3 4 5 6 7 ...\ X$\cdot$Y$\cdot$4-1] }
+    \end{center}
+
+    Where the digits at position 0,1,2 and 3 represent the values of
+    \texttt{grid[0][0][N,E,W,S]}, and 4,5,6 and 7 the values of
+    \texttt{grid[0][1][N,E,W,S]} for \texttt{grid[x][y][direction]}.
+
 
   \section*{Results}
   \section*{Discussion}
