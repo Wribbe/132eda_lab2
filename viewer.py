@@ -1,7 +1,7 @@
 import os
 
-from hmm_simplify import N,E,S,W, HEADINGS, SENSOR_NONE
-from hmm_simplify import coords_to_index, index_to_coords
+from hmm import \
+    N,E,S,W, HEADINGS, SENSOR_NONE, coords_to_index, index_to_coords
 
 C = 'C'
 TR = 'TR'
