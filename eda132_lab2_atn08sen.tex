@@ -22,7 +22,9 @@
 
     The following assignment task is to locate, as precisely as possible, the
     discrete x- and y-coordinates of a hidden robot in a (X,Y)-sized
-    grid-world, using the robots faulty sensor. \\
+    grid-world, using the robots faulty sensor.
+
+  \section*{Method}
 
     It is known that the robot orients itself according to the following
     probabilities:
@@ -32,7 +34,8 @@
       P(\textrm{Keep orientation | Not facing wall}) &= 0.3
     \end{align*}
 
-    There is also a known distribution for the readings of the faulty sensor:
+    There is also a known distribution of the readings coming from the faulty
+    sensor:
     \begin{align*}
       P(\textrm{True position}) &= 0.1 \\
       P(\textrm{1-step-off}) &= 0.05 \cdot np1\\
@@ -45,7 +48,6 @@
     Additionally the assumptions that the robot always successfully moves one
     tile and stays inside the grid are made.
 
-  \section*{Method}
   \section*{Results}
   \section*{Discussion}
   \section*{Implementation}
