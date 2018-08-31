@@ -9,7 +9,18 @@ BR = 'BR'
 NH = len(HEADINGS)
 
 MODES = ['tracking','headings','prob_nothing']
+MODE_TITLES = ['Tracking','Headings','Probability nothing']
 MODE_CURRENT = 0
+
+MODE_INFO = [
+    """
+    [Enter/No input]: Move robot.
+    """,
+    """
+    """,
+    """
+    """,
+]
 
 canvas = []
 
@@ -17,6 +28,9 @@ box_width = 15
 box_height = 7
 
 heading_marker = 0
+
+grid_offset_x = 0
+grid_offset_y = 0
 
 def display_canvas():
     print('\n'.join([''.join(line) for line in canvas]))
@@ -48,7 +62,7 @@ def canvas_coords(cx,cy):
     x = box_width*cx
     x += 1*cx if cx else 0
     y = box_height*cy
-    return (x,y)
+    return (x+grid_offset_x,y+grid_offset_y)
 
 def clear_box(cx,cy):
     x,y = [v+1 for v in canvas_coords(cx,cy)]
@@ -71,6 +85,11 @@ def write_in_box(cx,cy,pos,text):
     }
     x,y = [v1+v2 for (v1,v2) in zip([x,y],offset[pos])]
     for i, c in enumerate(text):
+        canvas[y][x+i] = c
+
+def write_at(x,y,text):
+    canvas[y] = [' ']*len(canvas[y])
+    for i,c in enumerate(text):
         canvas[y][x+i] = c
 
 def box(cx,cy):
@@ -106,6 +125,9 @@ def mark_poll(poll):
 
 
 def grid(x,y,width,height):
+    global grid_offset_x, grid_offset_y
+    grid_offset_x = x
+    grid_offset_y = y
     for col in range(width):
         for row in range(height):
             box(col, row)
@@ -142,7 +164,8 @@ def mark_advance(mat):
 def draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode):
 
     os.system("cls" if os.name == "nt" else "clear")
-    grid(0,0, NCS, NRS)
+    grid(0,1, NCS, NRS)
+    write_at(0,0,"Mode: {}".format(MODE_TITLES[MODE_CURRENT]))
     clear_tiles(NCS, NRS)
 
     sum_headings = lambda mat,i: sum(mat[i:i+NH])
