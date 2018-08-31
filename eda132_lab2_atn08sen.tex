@@ -3,6 +3,9 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
+\usepackage{amsmath}
+
+\setlength{\parindent}{0cm}
 
 \begin{document}
   \begin{center}
@@ -16,6 +19,32 @@
   \end{center}
   \vspace{-0.8cm}
   \section*{Introduction}
+
+    The following assignment task is to locate, as precisely as possible, the
+    discrete x- and y-coordinates of a hidden robot in a (X,Y)-sized
+    grid-world, using the robots faulty sensor. \\
+
+    It is known that the robot orients itself according to the following
+    probabilities:
+    \begin{align*}
+      P(\textrm{Keep orientation | Facing wall}) &= 0.0 \\
+      P(\textrm{Keep orientation | Not facing wall}) &= 0.7 \\
+      P(\textrm{Keep orientation | Not facing wall}) &= 0.3
+    \end{align*}
+
+    There is also a known distribution for the readings of the faulty sensor:
+    \begin{align*}
+      P(\textrm{True position}) &= 0.1 \\
+      P(\textrm{1-step-off}) &= 0.05 \cdot np1\\
+      P(\textrm{2-step-off}) &= 0.025 \cdot np2\\
+      P(\textrm{Nothing}) &= 1.0-\Sigma P(\textrm{\{True,1-,2-off\}})
+    \end{align*}
+
+    Where $np1$ and $np2$ are the number of possible (inside the grid)
+    positions one and two steps from the robots true location respectively.
+    Additionally the assumptions that the robot always successfully moves one
+    tile and stays inside the grid are made.
+
   \section*{Method}
   \section*{Results}
   \section*{Discussion}
