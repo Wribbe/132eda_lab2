@@ -15,7 +15,7 @@ NUM_STATES = NUM_COLS * NUM_ROWS * NUM_HEADINGS
 P_KEEP_HEADING, P_SENSOR_TRUE, P_L1, P_L2 = [0.7, 0.1, 0.05, 0.025]
 SENSOR_NONE = (None, None)
 
-T, TT, O = [[[0]*NUM_STATES for _ in range(NUM_STATES)] for _ in range(3)]
+T, O = [[[0]*NUM_STATES for _ in range(NUM_STATES)] for _ in range(2)]
 
 PN = POS_NEXT = {
     N: ( 0, -1),
@@ -98,16 +98,16 @@ def forward(t, O, T, robot):
 
 def main():
 
-    # Setup T-/TT-matrix.
-    for im, (mT, mTT) in enumerate(zip(T,TT)):
+    # Setup Transition-matrix.
+    for im, mT in enumerate(T):
         head, others = head_and_others(*index_to_coords(im))
         prob = 1.0
         if head:
             prob -= P_KEEP_HEADING
-            mT[coords_to_index(*head)] = mTT[tcoords_to_index(*head)] = 1-prob
+            mT[coords_to_index(*head)] = 1-prob
         prob /= len(others)
         for pos in others:
-            mT[coords_to_index(*pos)] = mTT[tcoords_to_index(*pos)] = prob
+            mT[coords_to_index(*pos)] = prob
 
     # Setup O-matrix.
     mat_nothing = []
