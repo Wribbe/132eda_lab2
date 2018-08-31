@@ -71,8 +71,8 @@ def move(robot):
     robot = roll_heading(*robot)
     next_p = pos_next(*robot)
     while not pos_valid(*next_p):
-        next_p = pos_next(*robot)
         robot = roll_heading(*robot)
+        next_p = pos_next(*robot)
     return next_p
 
 def poll_sensor(robot):
@@ -130,14 +130,14 @@ def main():
     inp = None
 
     while inp != 'q':
-        t, poll = forward(t, O, T, robot)
-        _, max_i = max([(sum(t[i:i+4]),i) for i in range(len(t))[0:len(t):4]])
-        guess = index_to_coords(max_i)[:2]
-        inp = viewer.draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode)
         if inp == 't':
             mode = viewer.next_mode()
         if mode == 'tracking' and not inp:
             robot = move(robot)
+            t, poll = forward(t, O, T, robot)
+            _, max_i = max([(sum(t[i:i+4]),i) for i in range(0,len(t),4)])
+            guess = index_to_coords(max_i)[:2]
+        inp = viewer.draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode)
 
 if __name__ == "__main__":
     main()
