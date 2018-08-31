@@ -6,6 +6,7 @@ from hmm_simplify import coords_to_index, index_to_coords
 C = 'C'
 TR = 'TR'
 BR = 'BR'
+NH = len(HEADINGS)
 
 canvas = []
 
@@ -102,43 +103,30 @@ def grid(x,y,width,height):
 def mark_robot(robot):
     write_in_box(*(robot[:2]), C, 'R')
 
-def mark_max(x,y):
+def mark_guess(x,y):
     write_in_box(x,y, BR, '?')
     write_in_box(x,y, C, '??')
 
-def draw(t, O, T, robot, poll, NCS, NRS, inp):
+def draw(t, O, T, robot, poll, NCS, NRS, inp, guess):
 
     os.system("cls" if os.name == "nt" else "clear")
     grid(0,0, NCS, NRS)
     x, y, h = [0, 0, 0]
 
     mat = t
-    max_x, max_y = [0, 0]
-    sum_temp = 0
-    sum_max = 0
 
-    for i,value in enumerate(mat):
+    sum_headings = lambda mat,i: sum(mat[i:i+NH])
 
-        sum_temp += value
+    indexes = range(0,len(mat),NH)
 
-        if i%len(HEADINGS) == 0:
-            write_in_box(x,y,h,"{:.3f}".format(sum_temp))
-            box_status(x,y,sum_temp)
-            if sum_temp > sum_max:
-                max_x, max_y = index_to_coords(i)[:2]
-                sum_max = sum_temp
-            sum_temp = 0
-
-        h += 1
-        if h >= len(HEADINGS):
-            h = 0
-            x += 1
-        if x >= NCS:
-            x = 0
-            y += 1
+    for i in indexes:
+        x,y,h = index_to_coords(i)
+        heading_sum = sum_headings(mat, i)
+        write_in_box(x,y,h,"{:.3f}".format(heading_sum))
+        box_status(x,y,heading_sum)
 
     clear_tiles(NCS, NRS)
     mark_poll(poll)
-    mark_max(max_x, max_y)
+    mark_guess(*guess)
     mark_robot(robot)
     display_canvas()

@@ -129,7 +129,9 @@ def main():
 
     while inp != 'q':
         t, poll = forward(t, O, T, robot)
-        viewer.draw(t, O, T, robot, poll, NCS, NRS, inp)
+        max_v, max_i = max([(sum(t[i:i+4]),i) for i in range(len(t))[0:len(t):4]])
+        guess = index_to_coords(max_i)[:2]
+        viewer.draw(t, O, T, robot, poll, NCS, NRS, inp, guess)
         inp = input("Enter option and press <ENTER>: ")
         robot = move(robot)
 
