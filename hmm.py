@@ -3,8 +3,6 @@
 import random
 import viewer
 
-from random import choice as randch
-
 NCS = NUM_COLS = 8
 NRS = NUM_ROWS = 8
 
@@ -34,7 +32,7 @@ tcoords_to_index = lambda x,y,h: coords_to_index(y,x,h) # Transpose.
 
 # Robot related helper methods.
 roll = lambda: random.uniform(0.0, 1.0)
-rh = lambda h: randch([v for v in HEADINGS if v != h])
+rh = lambda h: random.choice([v for v in HEADINGS if v != h])
 roll_heading = lambda x,y,h: (x,y,h) if roll()<=P_KEEP_HEADING else (x,y,rh(h))
 
 # Probability helper methods
@@ -124,7 +122,7 @@ def main():
     t = [1.0/NUM_STATES]*NUM_STATES
 
     # Init robot and main loop.
-    robot = (randch(range(NCS)), randch(range(NRS)), rh(-1))
+    robot = (random.choice(range(NCS)), random.choice(range(NRS)), rh(-1))
 
     mode = viewer.current_mode()
     inp = None
