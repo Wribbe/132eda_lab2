@@ -60,12 +60,37 @@
       \texttt{grid = [0 1 2 3 4 5 6 7 ...\ X$\cdot$Y$\cdot$4-1] }
     \end{center}
 
-    Where the digits at position 0,1,2 and 3 represent the values of
-    \texttt{grid[0][0][N,E,W,S]}, and 4,5,6 and 7 the values of
-    \texttt{grid[0][1][N,E,W,S]} for \texttt{grid[x][y][direction]}.
+    Where the digits at position 0-3 represent the values of
+    \texttt{grid[0][0][N,E,S,W]}, and 4-7 the values of
+    \texttt{grid[0][1][N,E,S,W]}, etc. for \texttt{grid[x][y][direction]}. \\
 
+    \textbf{Transitions:} In order to track all possible transition-states for
+    all tiles on the board, a matrix of size (X${\cdot}$Y${\cdot}4$)$^2$ is
+    needed. This is represented as a list in the same manner as above, but each
+    positions contains another list of the same size rather than a value. \\
+
+    \textbf{Observations:} If the strict mathematical definition of the
+    matrix-based forward filtering from the book should be followed, the
+    observations need to be represented as a diagonal matrix with a diagonal
+    length of (X${\cdot}$Y${\cdot}4$). There is however some wiggle-room in
+    regards to the storing of the observation-probability values as long as the
+    calculations are done as if they were diagonal matrices. This means that the
+    diagonal values can be stored without the surrounding zeroes, which results
+    in a structure equal to the transitions-representation.
+    The only difference between the Observation and Transition structures will
+    be an added extra matrix at the end of the Observation matrix, representing
+    the probability of the sensor returning nothing. \\
+
+    \textbf{Forward-message and HMM:} Using a Hidden-Markov-Model, there
+    needs to be a single object representing the whole state of the system;
+    $\vec{f}$, represented as a list of values as in the definition of
+    \texttt{grid} above. This list will also serves as the forward message in
+    the forward-filtering procedure used to track the robot.
 
   \section*{Results}
+
+    \textbf{Forward-filtering:}
+
   \section*{Discussion}
   \section*{Implementation}
 \end{document}
