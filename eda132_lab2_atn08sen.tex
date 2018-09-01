@@ -6,6 +6,10 @@
 \usepackage{amsmath}
 
 \setlength{\parindent}{0cm}
+\newcommand{\mat}[1]{$\textbf{#1}$}
+\newcommand{\mmat}[1]{\mathbf{#1}}
+\renewcommand{\vec}[1]{$\textbf{#1}$}
+\newcommand{\mvec}[1]{\mathbf{#1}}
 
 \begin{document}
   \begin{center}
@@ -82,14 +86,26 @@
     the probability of the sensor returning nothing. \\
 
     \textbf{Forward-message and HMM:} Using a Hidden-Markov-Model, there
-    needs to be a single object representing the whole state of the system;
-    $\vec{f}$, represented as a list of values as in the definition of
-    \texttt{grid} above. This list will also serves as the forward message in
-    the forward-filtering procedure used to track the robot.
+    needs to be a single object representing the whole state of the system (the
+    probability of the robot being at a tile with a given orientation);
+    \vec{f}. The states are represented as a list of values in the same way as
+    \texttt{grid}, shown previously. This list will also serves as the forward
+    message in the forward-filtering procedure used to track the robot.
 
   \section*{Results}
 
-    \textbf{Forward-filtering:}
+    \textbf{Forward-filtering:} Given the transition model; \mat{T}, sensor
+    model \mat{O}; and current system-state \vec{f} (all values
+    $= 1.0/(X{\cdot}Y{\cdot}4)$ initially), the forward filtering for the next
+    state (t+1) is done as:
+    \begin{align*}
+      \mvec{f}_{1:t+1} &= {\alpha}\mmat{O}_{t+1}\mmat{T}^\top\mvec{f}_{1:t}
+    \end{align*}
+
+    Where \mat{O}$_{t+1}$ is the probability diagonal representing the current
+    sensor reading, $\alpha$ is a normalization constant, and $\mvec{f}_{1:t}$
+    is the accumulation of all the state-representations from the initial start
+    (1) to the previous iteration (t).
 
   \section*{Discussion}
   \section*{Implementation}
