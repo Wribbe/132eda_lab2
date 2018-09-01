@@ -13,7 +13,7 @@ NUM_STATES = NUM_COLS * NUM_ROWS * NUM_HEADINGS
 P_KEEP_HEADING, P_SENSOR_TRUE, P_L1, P_L2 = [0.7, 0.1, 0.05, 0.025]
 SENSOR_NONE = (None, None)
 
-T, O = [[[0]*NUM_STATES for _ in range(NUM_STATES)] for _ in range(2)]
+T, TT, O = [[[0]*NUM_STATES for _ in range(NUM_STATES)] for _ in range(3)]
 
 PN = POS_NEXT = {
     N: ( 0, -1),
@@ -107,6 +107,11 @@ def main():
         for pos in others:
             mT[coords_to_index(*pos)] = prob
 
+    # Translate the T-matrix.
+    for x in range(NUM_STATES):
+        for y in range(NUM_STATES):
+            TT[x][y] = T[y][x]
+
     # Setup O-matrix.
     mat_nothing = []
     for im, diag in enumerate(O):
@@ -132,7 +137,7 @@ def main():
             mode = viewer.next_mode()
         if mode == 'tracking' and not inp:
             robot = move(robot)
-            t, poll = forward(t, O, T, robot)
+            t, poll = forward(t, O, TT, robot)
             _, max_i = max([(sum(t[i:i+4]),i) for i in range(0,len(t),4)])
             guess = index_to_coords(max_i)[:2]
         inp = viewer.draw(t, O, T, robot, poll, NCS, NRS, inp, guess, mode)
