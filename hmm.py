@@ -121,9 +121,10 @@ def main():
         for pos in L2:
             diag[coords_to_index(*pos)] = P_L2
         diag[im] = P_SENSOR_TRUE
-        mat_nothing.append(1.0-P_SENSOR_TRUE-p_tot_L1(L1)-p_tot_L2(L2))
+        mat_nothing.append(1.0-(P_SENSOR_TRUE+p_tot_L1(L1)+p_tot_L2(L2)))
     O.append(mat_nothing)
 
+    # Setup initial board-state.
     t = [1.0/NUM_STATES]*NUM_STATES
 
     # Init robot and main loop.
