@@ -126,12 +126,14 @@ def main():
     # Setup initial board-state.
     t = [1.0/NUM_STATES]*NUM_STATES
 
-    # Init robot and main loop.
+    # Init robot.
     robot = (random.choice(range(NCS)), random.choice(range(NRS)), rh(-1))
 
+    # Get current viewer mode.
     mode = viewer.current_mode()
     inp = None
 
+    # Main loop.
     while inp != 'q':
         if inp == 't':
             mode = viewer.next_mode()
