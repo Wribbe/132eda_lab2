@@ -110,5 +110,18 @@
     (1) to the previous iteration (t).
 
   \section*{Discussion}
+
+    \textbf{Answer Q2:} By counting the number of robot movements and tracking
+    attempts together with a sum of the Manhattan-distance between the
+    best-guess and the true location at each attempt, the average detection
+    offset is:
+
+    \begin{center}
+      $\textrm{avgManhattan}_{t+1} = \frac{\sum_{1}^{t+1} guess_t}{\#guesses}$
+    \end{center}
+
+    for the current implementation, this values hovers around 1.6 after
+    $\sim$100 guesses with the lowest observed value being 1.46.
+
   \section*{Implementation}
 \end{document}
