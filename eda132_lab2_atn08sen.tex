@@ -4,6 +4,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
 \usepackage{amsmath}
+\usepackage{enumitem}
 
 \setlength{\parindent}{0cm}
 \newcommand{\mat}[1]{$\textbf{#1}$}
@@ -121,7 +122,37 @@
     \end{center}
 
     for the current implementation, this values hovers around 1.6 after
-    $\sim$100 guesses with the lowest observed value being 1.46.
+    $\sim$100 guesses with the lowest observed value being 1.46. In other
+    words, in order to get to the correct position of the robot from a guess,
+    an axis-bound movement of less than two steps would be needed, on average.
 
   \section*{Implementation}
+
+    Files for the assignment are located the following network path:
+    \begin{center}
+      \texttt{/h/d6/tn08se5/eda132}
+    \end{center}
+    which contain two files written in Python(3.x); \texttt{hmm.py} and
+    \texttt{viewer.py}. The command \texttt{chmod -R 777 eda132} has been run in
+    order to grant all possible permissions for the directory and its
+    substructures. \\
+
+    Run the application by opening a terminal, cd'ing into the eda132 directory
+    running the follwing command:
+    \begin{center}
+      \texttt{./hmm.py}
+    \end{center}
+    which will start the visualization of the tracking. It should be possible
+    to run it with \texttt{python3 hmm.py} for the same effect, but take care
+    to use the correct version of the Python interpreter. \\
+
+    \textbf{viewer.py:} The text-based viewer is written using the built-in
+    \texttt{print()} method, and should work in any environment that can produce
+    Python textual output. Quick rundown of interface commands;
+    \begin{description}[align=right,labelwidth=3cm]
+      \item[q] quit viewer
+      \item[t] next mode (wraps around)
+      \item[<Enter>] finalize input or if no input, advance state of view
+    \end{description}
+
 \end{document}
