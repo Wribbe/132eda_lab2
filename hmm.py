@@ -28,7 +28,6 @@ pos_valid = lambda tx,ty,h=N: all([tx>=0, tx<NCS, ty>=0, ty<NRS])
 pos_all = lambda x,y: [(x+tx, y+ty, h) for (h,(tx, ty)) in PN.items()]
 pos_all_sane = lambda x,y: [p for p in pos_all(x,y) if pos_valid(*p)]
 coords_to_index = lambda x,y,h: y*NUM_COLS*NUM_HEADINGS + x*NUM_HEADINGS + h
-tcoords_to_index = lambda x,y,h: coords_to_index(y,x,h) # Transpose.
 
 # Robot related helper methods.
 roll = lambda: random.uniform(0.0, 1.0)
